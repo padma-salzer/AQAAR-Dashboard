@@ -1,0 +1,19 @@
+modules:
+  jira:globalPage:
+    - key: my-full-page-module
+      resource: main
+      routePrefix: custom-ui
+      title: AQAAR Dashboard
+resources:
+  - key: main
+    path: dashboard/components/build
+app:
+  runtime:
+    name: nodejs22.x
+    memoryMB: 256
+    architecture: arm64
+  id: ari:cloud:ecosystem::app/2e92e3bc-f7e4-4063-8efb-c8be8d545148
+permissions:
+  scopes:
+    - read:jira-user
+    - read:jira-work
