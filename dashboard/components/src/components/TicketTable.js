@@ -23,7 +23,7 @@ const TicketTable = ({
           gap: "6px",
         }}
       >
-        <h2 style={sectionTitle}>Open & In Progress Tickets</h2>
+        <h2 style={sectionTitle}>All Tickets</h2>
 
         <span
           style={{
@@ -61,9 +61,12 @@ const TicketTable = ({
                 <th style={thStyle}>Key</th>
                 <th style={thStyle}>Summary</th>
                 <th style={thStyle}>Status</th>
-                <th style={thStyle}>Assignee</th>
+                <th style={thStyle}>Issue Category</th>
                 <th style={{ ...thStyle, borderRight: "none" }}>
                   Created
+                </th>
+                <th style={{ ...thStyle, borderRight: "none" }}>
+                  Resolution Date
                 </th>
               </tr>
             </thead>
@@ -100,8 +103,7 @@ const TicketTable = ({
                   </td>
 
                   <td style={tdStyle}>
-                    {issue.fields.assignee?.displayName ||
-                      "Unassigned"}
+                     {issue.fields.customfield_10778?.value || "-"}
                   </td>
 
                   <td
@@ -113,6 +115,11 @@ const TicketTable = ({
                     {new Date(
                       issue.fields.created
                     ).toLocaleDateString()}
+                  </td>
+                  <td>
+                    {issue.fields.resolutiondate
+                      ? new Date(issue.fields.resolutiondate).toLocaleDateString("en-GB")
+                      : "-"}
                   </td>
                 </tr>
               ))}

@@ -3,7 +3,7 @@ modules:
     - key: my-full-page-module
       resource: main
       routePrefix: custom-ui
-      title: AQAAR Dashboard
+      title: AQAAR Annual Support Dashboard
 resources:
   - key: main
     path: dashboard/components/build

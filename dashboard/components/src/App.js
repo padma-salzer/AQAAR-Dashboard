@@ -12,6 +12,9 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import autoTable from "jspdf-autotable";
 import salzerLogo from "./assets/salzer-logo.png";
+import calendarIcon from "./assets/calendar-regular.png";
+import projectIcon from "./assets/headset-solid.png";
+import aqaarLogo from "./assets/Aqaar-logo.png";
 import {
   card,
   sectionTitle,
@@ -39,7 +42,7 @@ const App = () => {
   const [slaData, setSlaData] = useState([]);
   const [openStatusData, setOpenStatusData] = useState([]);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
-  const [projectStatusFilter, setProjectStatusFilter] = useState(["Active"]);
+  const [projectStatusFilter, setProjectStatusFilter] = useState(["Others"]);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [allProjects, setAllProjects] = useState([]);
   const [isProjectLoading, setIsProjectLoading] = useState(false);
@@ -48,11 +51,23 @@ const App = () => {
   const [hasSLAConfigured, setHasSLAConfigured] = useState(true);
   //const [totalStatusTickets, setTotalStatusTickets] = useState(0);
 
-  const hasResolutionData =
+  // const hasResolutionData =
+  //   (slaData[0]?.count || 0) + (slaData[1]?.count || 0) > 0;
+
+  // const hasResponseData =
+  //   (slaData[2]?.count || 0) + (slaData[3]?.count || 0) > 0;
+
+  const hasPriorityResolutionData =
     (slaData[0]?.count || 0) + (slaData[1]?.count || 0) > 0;
 
-  const hasResponseData =
+  const hasPriorityResponseData =
     (slaData[2]?.count || 0) + (slaData[3]?.count || 0) > 0;
+
+  const hasSeverityResolutionData =
+    (slaData[4]?.count || 0) + (slaData[5]?.count || 0) > 0;
+
+  const hasSeverityResponseData =
+    (slaData[6]?.count || 0) + (slaData[7]?.count || 0) > 0;
 
   const pageSize = 10;
   const maxCount = Math.max(...chartData.map((item) => item.count), 1);
@@ -72,14 +87,17 @@ const App = () => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
-    doc.setDrawColor(180);
-    doc.setLineWidth(0.3);
+    doc.setDrawColor(0, 153, 76);
+    doc.setLineWidth(1);
 
-    doc.rect(
+    doc.roundedRect(
       PAGE_MARGIN,
       PAGE_MARGIN,
       pageWidth - (PAGE_MARGIN * 2),
-      pageHeight - (PAGE_MARGIN * 2)
+      pageHeight - (PAGE_MARGIN * 2),
+      4,   // x-radius
+      4,   // y-radius
+      "S"
     );
   };
   
@@ -87,30 +105,38 @@ const App = () => {
   const addHeader = (doc) => {
     const pageWidth = doc.internal.pageSize.getWidth();
 
+    doc.addImage(aqaarLogo, "PNG", 12, 14, 24, 12);
+
     // Report Title
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text("Jira Dashboard Report", LEFT_MARGIN, 18);
+    doc.setFontSize(15);
+    doc.setTextColor(25, 55, 109);
+    doc.text(
+      "AQAAR Report",
+      pageWidth / 2,
+      22,
+      { align: "center" }
+    );
 
     // Company Logo
     doc.addImage(
       salzerLogo,
       "PNG",
       pageWidth - 45,
-      12,
-      35,
-      9
+      14,
+      24,
+      8
     );
 
     // Header Line
-    doc.setDrawColor(180);
-    doc.setLineWidth(0.3);
-    doc.line(
-      LEFT_MARGIN - 5,
-      25,
-      pageWidth - RIGHT_MARGIN,
-      25
-    );
+    // doc.setDrawColor(180);
+    // doc.setLineWidth(0.3);
+    // doc.line(
+    //   LEFT_MARGIN - 5,
+    //   25,
+    //   pageWidth - RIGHT_MARGIN,
+    //   25
+    // );
   };
 
   // add footer helper function
@@ -120,13 +146,25 @@ const App = () => {
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.setTextColor(100);
+    doc.setTextColor(120, 120, 120);
 
     const pageText = `Page ${pageNumber} of ${totalPages}`;
-    const textWidth = doc.getTextWidth(pageText);
 
-    doc.text(pageText, pageWidth - textWidth - 15, pageHeight - 10);
+    doc.text(
+      pageText,
+      pageWidth - RIGHT_MARGIN,
+      pageHeight - PAGE_MARGIN - 6,
+      { align: "right" }
+    );
   };
+
+  const formatDate = (date) => {
+    const [year, month, day] = date.split("-");
+    return `${day}/${month}/${year}`;
+  };
+
+  const formattedFrom = formatDate(fromDate);
+  const formattedTo = formatDate(toDate);
 
   // Export pdf button
   const handleExportPDF = async () => {
@@ -150,33 +188,98 @@ const App = () => {
     const activeImage = activeCanvas.toDataURL("image/png");
     // SLA Section
     const slaElement = document.getElementById("sla-section");
-    const slaCanvas = await html2canvas(slaElement);
+    const slaCanvas = await html2canvas(slaElement, {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+    });
     const slaImage = slaCanvas.toDataURL("image/png");
-    const imgWidth = 170;
+    const imgWidth = 100;
 
     //PDF
     const allTickets = await fetchAllTickets();
     const tableRows = allTickets.map((issue) => [
       issue.key,
       issue.fields.summary,
-      issue.fields.assignee?.displayName || "Unassigned",
       issue.fields.status.name,
+      issue.fields.customfield_10778?.value || "-",
       new Date(issue.fields.created).toLocaleDateString(),
+       issue.fields.resolutiondate
+      ? formatDate(issue.fields.resolutiondate)
+      : "-",
     ]);
 
-
     const doc = new jsPDF();
-    addPageBorder(doc);
     addHeader(doc);
-    let y = 35;
+    addPageBorder(doc);
+    let y = 30;
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.text(`Project: ${projectName}`, LEFT_MARGIN, y);
-    y += 10;
-    doc.text(`From Date: ${fromDate}`, LEFT_MARGIN, y);
-    doc.text(`To Date: ${toDate}`, 110, y);
-    y += 10;
+    // STEP 1 - Draw the information box
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const boxX = LEFT_MARGIN;
+    const boxY = y;
+    const boxWidth = pageWidth - LEFT_MARGIN - RIGHT_MARGIN;
+    const boxHeight = 42;
+
+    doc.setDrawColor(210, 220, 235);
+    doc.setFillColor(250, 252, 255);
+    doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 3, 3, "FD");
+
+        // Project Icon
+    doc.addImage(projectIcon, "PNG", boxX + 6, boxY + 9, 8, 8);
+
+    // PROJECT label
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(41, 98, 255);
+    doc.text("PROJECT :",  boxX + 17, boxY + 13);
+
+    // Project Name
+    const labelWidth = doc.getTextWidth("PROJECT :") + 3;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(25, 55, 109);
+    doc.text(projectName, boxX + 17 + labelWidth, boxY + 13);
+
+    // Divider
+    doc.setDrawColor(225);
+    doc.line(boxX, boxY + 20, boxX + boxWidth, boxY + 20);
+
+    //from date
+   doc.addImage(calendarIcon, "PNG", boxX + 8, boxY + 24, 6, 6);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(41, 98, 255);
+    doc.text("FROM DATE", boxX + 17, boxY + 28);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(25, 55, 109);
+    doc.text(formattedFrom, boxX + 17, boxY + 35);
+
+    //To date
+    doc.addImage(calendarIcon, "PNG", boxX + 105, boxY + 24, 6, 6);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(41, 98, 255);
+    doc.text("TO DATE", boxX + 114, boxY + 28);
+
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(25, 55, 109);
+    doc.text(formattedTo, boxX + 114, boxY + 35);
+    // Move Y below the information box
+    y = boxY + boxHeight + 10;
+
+    // doc.setFont("helvetica", "normal");
+    // doc.setFontSize(12);
+    // doc.text(`Project: ${projectName}`, LEFT_MARGIN, y);
+    // y += 10;
+    // doc.text(`From Date: ${fromDate}`, LEFT_MARGIN, y);
+    // doc.text(`To Date: ${toDate}`, 110, y);
+    // y += 10;
   
     //Donut Charts
     const statusHeight = (canvas.height * imgWidth) / canvas.width;
@@ -190,27 +293,30 @@ const App = () => {
     y += activeHeight + 10;
     // SLA Section
     doc.addPage();
-    addPageBorder(doc);
     addHeader(doc);
+    addPageBorder(doc);
+    
     const slaHeight = (slaCanvas.height * imgWidth) / slaCanvas.width;
-    doc.addImage(slaImage, "PNG", 20, 30, imgWidth, slaHeight);
-    y += activeHeight + 10;
-    let tableStartY = 30 + slaHeight + 20;
-    doc.setFontSize(16);
-    doc.text("Ticket Details", 20, tableStartY);
+    doc.addImage(slaImage, "PNG", 20, 30, 170, slaHeight + 15);
+    y += activeHeight + 20;
+    let tableStartY = 30 + slaHeight + 25;
+    doc.setTextColor(25, 55, 109);
+    doc.setFontSize(10);
+    doc.text("All Ticket Details", 12, tableStartY + 3);
     autoTable(doc, {
       startY: tableStartY + 6,
       head: [[
         "Key",
         "Summary",
-        "Assignee",
+        "Issue Type",
         "Status",
         "Created"
       ]],
       body: tableRows,
       didDrawPage: () => {
-        addPageBorder(doc);
         addHeader(doc);
+        addPageBorder(doc);
+        
       },
       styles: {
         fontSize: 8,
@@ -235,9 +341,9 @@ const App = () => {
 
   // Fetch all tickets for pdf table export
   const fetchAllTickets = async () => {
-    let jql = `statusCategory != Done AND status NOT IN ("Closed","Resolved","Canceled")`;
+    let jql = "";
     if (selectedProject) {
-        jql += ` AND project = "${selectedProject}"`;
+        jql += `project = "${selectedProject}"`;
     }
     let allTickets = [];
     let nextPageToken = null;
@@ -249,7 +355,9 @@ const App = () => {
                 "summary",
                 "assignee",
                 "status",
-                "created"
+                "created",
+                "resolutiondate", 
+                "customfield_10778"
             ],
         };
         if (nextPageToken) {
@@ -443,9 +551,12 @@ const App = () => {
           return category && projectStatusFilter.includes(category);
         });
 
+    console.log(filtered);
+
     // ADD THIS FILTER
     const jiraOnly = filtered.filter(
-      (project) => project.projectTypeKey === "software"
+      //(project) => project.projectTypeKey === "software"
+      (project) => project.projectTypeKey === "service_desk"
     );
 
     //SORT
@@ -458,7 +569,7 @@ const App = () => {
     const isValidSelection = sorted.some((p) => p.key === selectedProject);
 
     if (!isValidSelection) {
-      const defaultProject = sorted.find((project) => project.key === "PISD");
+      const defaultProject = sorted.find((project) => project.key === "AASD");
 
       if (defaultProject) {
         setSelectedProject(defaultProject.key);
@@ -598,10 +709,10 @@ const App = () => {
   // list view
   const fetchOpenTickets = async (token = null) => {
     try {
-      let jql = `statusCategory != Done AND status NOT IN ("Closed","Resolved","Canceled")`;
-
+      //let jql = `statusCategory != Done AND status NOT IN ("Closed","Resolved","Canceled")`;
+      let jql = "";
       if (selectedProject) {
-        jql += ` AND project = "${selectedProject}"`;
+        jql += `project = "${selectedProject}"`;
       }
 
       jql += ` ORDER BY created ASC`;
@@ -609,7 +720,8 @@ const App = () => {
       const body = {
         jql,
         maxResults: pageSize,
-        fields: ["summary", "status", "assignee", "created"],
+        fields: ["summary", "status", "issuecategory", "created","resolutiondate", "customfield_10778"],      
+        //fields: ["*all"]
       };
 
       if (token) {
@@ -638,6 +750,13 @@ const App = () => {
   };
 
   // SLA Status
+  const SLA_FIELDS = {
+    priorityResponse: "customfield_10884",
+    priorityResolution: "customfield_10885",
+    severityResponse: "customfield_10882",
+    severityResolution: "customfield_10883",
+  };
+
   const fetchSLAData = async () => {
     setSlaData([]);
 
@@ -655,7 +774,13 @@ const App = () => {
         const body = {
           jql,
           maxResults: 100,
-          fields: ["customfield_10273", "customfield_10646", "status"], // ✅ add status
+          fields: [
+          SLA_FIELDS.priorityResponse,
+          SLA_FIELDS.priorityResolution,
+          SLA_FIELDS.severityResponse,
+          SLA_FIELDS.severityResolution,
+          "status",
+          ], // ✅ add status
         };
 
         if (nextPageToken) {
@@ -685,35 +810,71 @@ const App = () => {
         return;
       }
 
-      const resolutionGrouped = { Met: 0, Breached: 0 };
-      const responseGrouped = { Met: 0, Breached: 0 };
+      const priorityResolutionGrouped = { Met: 0, Breached: 0 };
+      const priorityResponseGrouped = { Met: 0, Breached: 0 };
+
+      const severityResolutionGrouped = { Met: 0, Breached: 0 };
+      const severityResponseGrouped = { Met: 0, Breached: 0 };
 
       // ✅ LOOP ONLY FOR CALCULATION
       let slaFieldExists = false;
       allTickets.forEach((issue) => {
-        const resolutionField = issue.fields?.["customfield_10273"];
-        const responseField = issue.fields?.["customfield_10646"];
+        const priorityResolutionField =
+          issue.fields?.[SLA_FIELDS.priorityResolution];
 
-        if (resolutionField !== undefined || responseField !== undefined) {
+        const priorityResponseField =
+          issue.fields?.[SLA_FIELDS.priorityResponse];
+
+        const severityResolutionField =
+          issue.fields?.[SLA_FIELDS.severityResolution];
+
+        const severityResponseField =
+          issue.fields?.[SLA_FIELDS.severityResponse];
+
+        if (
+          priorityResolutionField !== undefined ||
+          priorityResponseField !== undefined ||
+          severityResolutionField !== undefined ||
+          severityResponseField !== undefined
+        ) {
           slaFieldExists = true;
         }
         const statusCategory =
           issue.fields.status?.statusCategory?.name;
 
         // 🔹 Resolution SLA (Done only)
-        if (statusCategory === "Done" && resolutionField?.value) {
-          const sla = resolutionField.value;
+        if (statusCategory === "Done" && priorityResolutionField?.value) {
+          const sla = priorityResolutionField.value;
 
-          if (sla === "Breached") resolutionGrouped.Breached += 1;
-          else if (sla === "Met") resolutionGrouped.Met += 1;
+          if (sla === "Breached") priorityResolutionGrouped.Breached += 1;
+          else if (sla === "Met") priorityResolutionGrouped.Met += 1;
         }
 
-        // 🔹 Response SLA (ALL tickets)
-        if (responseField?.value) {
-          const sla = responseField.value;
+        // Severity SLA For Done
+        if (statusCategory === "Done" && severityResolutionField?.value) {
+          if (severityResolutionField.value === "Met") {
+            severityResolutionGrouped.Met++;
+          } else if (severityResolutionField.value === "Breached") {
+            severityResolutionGrouped.Breached++;
+          }
+        }
 
-          if (sla === "Breached") responseGrouped.Breached += 1;
-          else if (sla === "Met") responseGrouped.Met += 1;
+
+        // 🔹 Response SLA (ALL tickets)
+        if (priorityResponseField?.value) {
+          const sla = priorityResponseField.value;
+
+          if (sla === "Breached") priorityResponseGrouped.Breached += 1;
+          else if (sla === "Met") priorityResponseGrouped.Met += 1;
+        }
+
+        // Severity Response SLA (All tickets)
+        if (severityResponseField?.value) {
+          if (severityResponseField.value === "Met") {
+            severityResponseGrouped.Met++;
+          } else if (severityResponseField.value === "Breached") {
+            severityResponseGrouped.Breached++;
+          }
         }
       });
 
@@ -721,10 +882,16 @@ const App = () => {
 
       // ✅ SET STATE HERE (AFTER LOOP)
       setSlaData([
-        { label: "Resolution SLA - Met", count: resolutionGrouped.Met },
-        { label: "Resolution SLA - Breached", count: resolutionGrouped.Breached },
-        { label: "Response SLA - Met", count: responseGrouped.Met },
-        { label: "Response SLA - Breached", count: responseGrouped.Breached },
+        { label: "Priority Resolution SLA - Met", count: priorityResolutionGrouped.Met },
+        { label: "Priority Resolution SLA - Breached", count: priorityResolutionGrouped.Breached },
+        { label: "Priority Response SLA - Met", count: priorityResponseGrouped.Met },
+        { label: "Priority Response SLA - Breached", count: priorityResponseGrouped.Breached },
+
+        // Severity
+        { label: "Severity Resolution SLA - Met", count: severityResolutionGrouped.Met },
+        { label: "Severity Resolution SLA - Breached", count: severityResolutionGrouped.Breached },
+        { label: "Severity Response SLA - Met", count: severityResponseGrouped.Met },
+        { label: "Severity Response SLA - Breached", count: severityResponseGrouped.Breached },
       ]);
     } catch (error) {
       console.error("Error fetching SLA data:", error);
@@ -907,8 +1074,12 @@ const App = () => {
       <div id="sla-section">
         <SlaSection
           hasSLAConfigured={hasSLAConfigured}
-          hasResponseData={hasResponseData}
-          hasResolutionData={hasResolutionData}
+          hasPriorityResolutionData = {hasPriorityResolutionData}
+          hasPriorityResponseData = {hasPriorityResponseData}
+          hasSeverityResolutionData = {hasSeverityResolutionData}
+          hasSeverityResponseData = {hasSeverityResponseData}
+          // hasResponseData={hasResponseData}
+          // hasResolutionData={hasResolutionData}
           slaData={slaData}
           fromDate={fromDate}
           toDate={toDate}
