@@ -1,27 +1,22 @@
 import React from "react";
 import { router } from "@forge/bridge";
 
-const SlaRow = ({
-  title,
-  metCount,
-  breachedCount,
-  metJql,
-  breachedJql,
-}) => {
+const SlaRow = ({ title, metCount, breachedCount, metJql, breachedJql }) => {
   return (
     <div
       style={{
-        display: "grid",
-        gridTemplateColumns: "340px 170px 190px",
+        display: "flex",
         alignItems: "center",
+        gap: "60px",
         marginTop: "16px",
-        columnGap: "20px",
       }}
     >
       <span
         style={{
+          width: "300px",
           fontSize: "17px",
           fontWeight: "600",
+          flexShrink: 0,
         }}
       >
         {title}
@@ -30,17 +25,28 @@ const SlaRow = ({
       <div
         style={{
           display: "flex",
+          alignItems: "center",
           justifyContent: "space-between",
+          width: "220px",
           cursor: "pointer",
         }}
         onClick={() =>
           router.open(`/issues/?jql=${encodeURIComponent(metJql)}`)
         }
       >
-        <span style={{fontSize: "20px"}}>Met</span>
+        <span
+          style={{
+            width: "120px",
+            fontSize: "18px",
+          }}
+        >
+          Met
+        </span>
 
         <span
           style={{
+            width: "40px",
+            textAlign: "right",
             color: "#36B37E",
             fontWeight: "700",
             fontSize: "20px",
@@ -53,17 +59,28 @@ const SlaRow = ({
       <div
         style={{
           display: "flex",
+          alignItems: "center",
           justifyContent: "space-between",
+          width: "220px",
           cursor: "pointer",
         }}
         onClick={() =>
           router.open(`/issues/?jql=${encodeURIComponent(breachedJql)}`)
         }
       >
-        <span style={{fontSize: "20px"}}>Breached</span>
+        <span
+          style={{
+            width: "120px",
+            fontSize: "18px",
+          }}
+        >
+          Breached
+        </span>
 
         <span
           style={{
+            width: "40px",
+            textAlign: "right",
             color: "#FF5630",
             fontWeight: "700",
             fontSize: "20px",

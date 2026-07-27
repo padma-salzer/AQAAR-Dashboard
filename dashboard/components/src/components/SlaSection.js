@@ -84,13 +84,20 @@ ${selectedProject ? `AND project = "${selectedProject}"` : ""}
     <div
       style={{
         ...card,
-        marginBottom: "16px",
+        marginBottom: "24px",
         paddingTop: "18px",
         paddingLeft: "18px",
         paddingRight: "18px",
       }}
     >
-      <h2 style={sectionTitle}>SLA Performance</h2>
+      <h2
+        style={{
+          ...sectionTitle,
+          margin: "0 0 12px 0",
+        }}
+      >
+        SLA Performance
+      </h2>
 
       {!hasSLAConfigured ? (
         <div style={{ textAlign: "center", marginTop: "16px" }}>

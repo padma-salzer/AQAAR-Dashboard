@@ -17,20 +17,16 @@ const ActiveStatusDonut = ({ openStatusData, selectedProject }) => {
     <div
       style={{
         ...card,
-        paddingTop: "18px",
         flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-start",
-        minHeight: "270px",
       }}
     >
       <div
         style={{
           display: "flex",
-          alignItems: "center",
+          alignItems: "baseline",
           gap: "8px",
-          marginBottom: "10px",
+          marginBottom: "16px",
+          flexWrap: "wrap",
         }}
       >
         <h2
@@ -62,96 +58,78 @@ const ActiveStatusDonut = ({ openStatusData, selectedProject }) => {
         <div
           style={{
             display: "flex",
-            width: "100%",
+            gap: "22px",
             alignItems: "center",
           }}
         >
-          <div
-            style={{
-              flex: "0 0 50%",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <svg width="205" height="205" viewBox="0 0 200 200">
-              <g transform="rotate(-90 100 100)">
-                {(() => {
-                  let cumulative = 0;
+          <svg width="200" height="200" viewBox="0 0 200 200">
+            <g transform="rotate(-90 100 100)">
+              {(() => {
+                let cumulative = 0;
 
-                  return openStatusData.map((item) => {
-                    const percent = total ? item.count / total : 0;
-                    const dash = `${percent * circumference} ${circumference}`;
-                    const offset = -cumulative * circumference;
+                return openStatusData.map((item) => {
+                  const percent = total ? item.count / total : 0;
+                  const dash = `${percent * circumference} ${circumference}`;
+                  const offset = -cumulative * circumference;
 
-                    cumulative += percent;
+                  cumulative += percent;
 
-                    return (
-                      <circle
-                        key={item.label}
-                        r={radius}
-                        cx="100"
-                        cy="100"
-                        fill="transparent"
-                        stroke={getStatusColor(item.label, item.category)}
-                        strokeWidth="28"
-                        strokeDasharray={dash}
-                        strokeDashoffset={offset}
-                        style={{
-                          cursor: "pointer",
-                          pointerEvents: "stroke",
-                        }}
-                        onClick={() => {
-                          let jql = `status = "${item.label}"`;
+                  return (
+                    <circle
+                      key={item.label}
+                      r={radius}
+                      cx="100"
+                      cy="100"
+                      fill="transparent"
+                      stroke={getStatusColor(item.label, item.category)}
+                      strokeWidth="28"
+                      strokeDasharray={dash}
+                      strokeDashoffset={offset}
+                      style={{
+                        cursor: "pointer",
+                        pointerEvents: "stroke",
+                      }}
+                      onClick={() => {
+                        let jql = `status = "${item.label}"`;
 
-                          if (selectedProject) {
-                            jql += ` AND project = "${selectedProject}"`;
-                          }
+                        if (selectedProject) {
+                          jql += ` AND project = "${selectedProject}"`;
+                        }
 
-                          router.open(
-                            `/issues/?jql=${encodeURIComponent(jql)}`,
-                          );
-                        }}
-                      />
-                    );
-                  });
-                })()}
-              </g>
+                        router.open(`/issues/?jql=${encodeURIComponent(jql)}`);
+                      }}
+                    />
+                  );
+                });
+              })()}
+            </g>
 
-              <text
-                x="100"
-                y="95"
-                textAnchor="middle"
-                fontSize="26"
-                fontWeight="600"
-                style={{ cursor: "pointer" }}
-                onClick={() =>
-                  router.open(`/issues/?jql=${encodeURIComponent(totalJql)}`)
-                }
-              >
-                {total}
-              </text>
+            <text
+              x="100"
+              y="95"
+              textAnchor="middle"
+              fontSize="26"
+              fontWeight="600"
+              style={{ cursor: "pointer" }}
+              onClick={() =>
+                router.open(`/issues/?jql=${encodeURIComponent(totalJql)}`)
+              }
+            >
+              {total}
+            </text>
 
-              <text
-                x="100"
-                y="120"
-                textAnchor="middle"
-                fontSize="14"
-                fill="#6B778C"
-              >
-                Total Active Tickets
-              </text>
-            </svg>
-          </div>
+            <text
+              x="100"
+              y="120"
+              textAnchor="middle"
+              fontSize="14"
+              fill="#6B778C"
+            >
+              Total Active Tickets
+            </text>
+          </svg>
 
-          <div
-            style={{
-              flex: "0 0 50%",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-            }}
-          >
+          <div>
             {openStatusData.map((item) => {
               const percent = total
                 ? ((item.count / total) * 100).toFixed(1)
@@ -171,9 +149,9 @@ const ActiveStatusDonut = ({ openStatusData, selectedProject }) => {
                   }
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "16px minmax(0,1fr) 45px 70px",
+                    gridTemplateColumns: "16px auto 40px 60px",
                     alignItems: "center",
-                    marginBottom: "6px",
+                    marginBottom: "4px",
                     cursor: "pointer",
                     fontSize: "16px",
                     columnGap: "6px",
@@ -190,15 +168,7 @@ const ActiveStatusDonut = ({ openStatusData, selectedProject }) => {
                     }}
                   />
 
-                  <span
-                    style={{
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {item.label}
-                  </span>
+                  <span>{item.label}</span>
 
                   <strong style={{ textAlign: "center" }}>{item.count}</strong>
 

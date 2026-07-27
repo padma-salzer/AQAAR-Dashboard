@@ -7,7 +7,7 @@ export const card = {
 };
 
 export const sectionTitle = {
-  fontSize: "21px",
+  fontSize: "19px",
   fontWeight: "600",
   marginBottom: "16px",
 };

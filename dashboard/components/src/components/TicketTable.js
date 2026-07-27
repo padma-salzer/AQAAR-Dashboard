@@ -2,11 +2,7 @@ import React from "react";
 import { router } from "@forge/bridge";
 import { card, sectionTitle, thStyle, tdStyle } from "../utils/styles";
 
-const TicketTable = ({
-  issues,
-  nextPageToken,
-  fetchOpenTickets,
-}) => {
+const TicketTable = ({ issues, nextPageToken, fetchOpenTickets }) => {
   return (
     <div
       style={{
@@ -62,12 +58,8 @@ const TicketTable = ({
                 <th style={thStyle}>Summary</th>
                 <th style={thStyle}>Status</th>
                 <th style={thStyle}>Issue Category</th>
-                <th style={{ ...thStyle}}>
-                  Created
-                </th>
-                <th style={{ ...thStyle, borderRight: "none" }}>
-                  Resolved
-                </th>
+                <th style={{ ...thStyle }}>Created</th>
+                <th style={{ ...thStyle, borderRight: "none" }}>Resolved</th>
               </tr>
             </thead>
 
@@ -86,34 +78,28 @@ const TicketTable = ({
                         cursor: "pointer",
                         fontWeight: "500",
                       }}
-                      onClick={() =>
-                        router.open(`/browse/${issue.key}`)
-                      }
+                      onClick={() => router.open(`/browse/${issue.key}`)}
                     >
                       {issue.key}
                     </span>
                   </td>
 
+                  <td style={tdStyle}>{issue.fields.summary}</td>
+
+                  <td style={tdStyle}>{issue.fields.status.name}</td>
+
                   <td style={tdStyle}>
-                    {issue.fields.summary}
+                    {issue.fields.customfield_10778?.value || "-"}
                   </td>
 
                   <td style={tdStyle}>
-                    {issue.fields.status.name}
+                    {new Date(issue.fields.created).toLocaleDateString("en-GB")}
                   </td>
-
                   <td style={tdStyle}>
-                     {issue.fields.customfield_10778?.value || "-"}
-                  </td>
-
-                  <td style={tdStyle}>
-                    {new Date(
-                      issue.fields.created
-                    ).toLocaleDateString("en-GB")}
-                  </td>
-                  <td>
                     {issue.fields.resolutiondate
-                      ? new Date(issue.fields.resolutiondate).toLocaleDateString("en-GB")
+                      ? new Date(
+                          issue.fields.resolutiondate,
+                        ).toLocaleDateString("en-GB")
                       : "-"}
                   </td>
                 </tr>
@@ -124,9 +110,7 @@ const TicketTable = ({
           <div style={{ display: "inline-block" }}>
             {nextPageToken && (
               <button
-                onClick={() =>
-                  fetchOpenTickets(nextPageToken)
-                }
+                onClick={() => fetchOpenTickets(nextPageToken)}
                 style={{
                   marginTop: "12px",
                   padding: "8px 16px",

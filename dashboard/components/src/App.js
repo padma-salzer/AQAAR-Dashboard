@@ -182,14 +182,14 @@ const App = () => {
         backgroundColor: "#ffffff",
       });
       const activeImage = activeCanvas.toDataURL("image/png");
-      // SLA Section
-      const slaElement = document.getElementById("sla-section");
-      const slaCanvas = await html2canvas(slaElement, {
-        scale: 3,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-      });
-      const slaImage = slaCanvas.toDataURL("image/png");
+      // // SLA Section
+      // const slaElement = document.getElementById("sla-section");
+      // const slaCanvas = await html2canvas(slaElement, {
+      //   scale: 3,
+      //   useCORS: true,
+      //   backgroundColor: "#ffffff",
+      // });
+      // const slaImage = slaCanvas.toDataURL("image/png");
       const PDF_CONTENT_WIDTH = 180;
 
       const scale = PDF_CONTENT_WIDTH / canvas.width;
@@ -214,58 +214,32 @@ const App = () => {
       const pageHeight = doc.internal.pageSize.getHeight();
       let y = 30;
 
-      // y = 34;
-
-      // doc.setFont("helvetica", "bold");
-      // doc.setFontSize(11);
-      // doc.setTextColor(110);
-
-      // doc.text("Project", LEFT_MARGIN, y);
-
-      // doc.setFontSize(14);
-      // doc.setTextColor(25, 55, 109);
-
-      // doc.text(projectName, LEFT_MARGIN, y + 7);
-
-      // y += 15;
-
-      // doc.setFontSize(11);
-      // doc.setTextColor(110);
-
-      // doc.text("Report Period", LEFT_MARGIN, y);
-
-      // doc.setFontSize(12);
-      // doc.setTextColor(25, 55, 109);
-
-      // doc.text(`${formattedFrom} - ${formattedTo}`, LEFT_MARGIN, y + 7);
-
-      // y += 14;
-
-      y = 38;
+      y = 34;
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(110);
 
-      doc.text("Project:", LEFT_MARGIN, y);
+      doc.text("Project", LEFT_MARGIN, y);
 
+      doc.setFontSize(14);
       doc.setTextColor(25, 55, 109);
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
 
-      doc.text(projectName, 34, y);
+      doc.text(projectName, LEFT_MARGIN, y + 7);
 
-      doc.setTextColor(110);
+      y += 15;
+
       doc.setFontSize(11);
+      doc.setTextColor(110);
 
-      doc.text("Report Period:", 112, y);
+      doc.text("Report Period", LEFT_MARGIN, y);
 
-      doc.setTextColor(25, 55, 109);
       doc.setFontSize(12);
+      doc.setTextColor(25, 55, 109);
 
-      doc.text(`${formattedFrom} - ${formattedTo}`, 146, y);
+      doc.text(`${formattedFrom} - ${formattedTo}`, LEFT_MARGIN, y + 7);
 
-      y += 8;
+      y += 14;
 
       // doc.setFont("helvetica", "normal");
       // doc.setFontSize(12);
@@ -281,11 +255,10 @@ const App = () => {
 
       doc.addImage(image, "PNG", LEFT_MARGIN, y, statusWidth, statusHeight);
 
-      y += statusHeight + 2;
+      y += statusHeight + 4;
 
       // Active Status Donut
       const activeWidth = activeCanvas.width * scale;
-
       const activeHeight = activeCanvas.height * scale;
 
       doc.addImage(
@@ -297,15 +270,78 @@ const App = () => {
         activeHeight,
       );
 
-      y += activeHeight + 2;
+      y += activeHeight + 10;
 
-      const slaWidth = statusWidth;
+      // const slaWidth = statusWidth;
 
-      const slaHeight = slaCanvas.height * scale * 0.92;
+      // const slaHeight = slaCanvas.height * scale * 0.92;
 
-      doc.addImage(slaImage, "PNG", LEFT_MARGIN, y, slaWidth, slaHeight);
+      // doc.addImage(slaImage, "PNG", LEFT_MARGIN, y, slaWidth, slaHeight);
 
-      y += slaHeight;
+      // y += slaHeight;
+
+      // ---------------- SLA Performance ----------------
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(25, 55, 109);
+      doc.text("SLA Performance", LEFT_MARGIN + 4, y);
+
+      const slaTop = y - 6;
+      const slaHeight = 30;
+
+      doc.setDrawColor(220);
+      doc.setLineWidth(0.3);
+
+      doc.roundedRect(
+        LEFT_MARGIN,
+        slaTop,
+        pageWidth - LEFT_MARGIN - RIGHT_MARGIN,
+        slaHeight,
+        2,
+        2,
+        "S",
+      );
+
+      y += 8;
+
+      // Severity - Time to First Response
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(0);
+
+      doc.text("Severity - Time to First Response", LEFT_MARGIN + 4, y);
+
+      doc.text("Met", 115, y);
+      doc.setTextColor(54, 179, 126);
+      doc.text(String(slaData[6]?.count || 0), 130, y);
+
+      doc.setTextColor(0);
+      doc.text("Breached", 145, y);
+
+      doc.setTextColor(255, 86, 48);
+      doc.text(String(slaData[7]?.count || 0), 170, y);
+
+      y += 8;
+
+      // Severity - Time to Resolution
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(0);
+
+      doc.text("Severity - Time to Resolution", LEFT_MARGIN + 4, y);
+
+      doc.text("Met", 115, y);
+      doc.setTextColor(54, 179, 126);
+      doc.text(String(slaData[0]?.count || 0), 130, y);
+
+      doc.setTextColor(0);
+      doc.text("Breached", 145, y);
+
+      doc.setTextColor(255, 86, 48);
+      doc.text(String(slaData[1]?.count || 0), 170, y);
+
+      y += 16;
 
       doc.addPage();
       addHeader(doc);
@@ -1050,7 +1086,7 @@ const App = () => {
             fontSize: "16px",
           }}
         >
-          {exportingPdf ? "⏳ Generating PDF..." : "📄 Export PDF"}
+          {exportingPdf ? "Generating PDF..." : "Export PDF"}
         </button>
       </div>
       {/* FILTER BAR */}
