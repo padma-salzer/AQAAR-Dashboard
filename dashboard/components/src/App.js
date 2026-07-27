@@ -292,14 +292,17 @@ const App = () => {
     doc.addImage(activeImage, "PNG", 20, y, imgWidth, activeHeight);
     y += activeHeight + 10;
     // SLA Section
+    // doc.addPage();
+    // addHeader(doc);
+    // addPageBorder(doc);
+    
+    const slaHeight = (slaCanvas.height * imgWidth) / slaCanvas.width;
+    doc.addImage(slaImage, "PNG", 20, y, 170, slaHeight + 15);
+    y += activeHeight + 20;
     doc.addPage();
     addHeader(doc);
     addPageBorder(doc);
-    
-    const slaHeight = (slaCanvas.height * imgWidth) / slaCanvas.width;
-    doc.addImage(slaImage, "PNG", 20, 30, 170, slaHeight + 15);
-    y += activeHeight + 20;
-    let tableStartY = 30 + slaHeight + 25;
+    let tableStartY = 30;
     doc.setTextColor(25, 55, 109);
     doc.setFontSize(10);
     doc.text("All Ticket Details", 12, tableStartY + 3);
@@ -308,8 +311,8 @@ const App = () => {
       head: [[
         "Key",
         "Summary",
-        "Issue Type",
         "Status",
+        "Issue Type",
         "Created"
       ]],
       body: tableRows,
