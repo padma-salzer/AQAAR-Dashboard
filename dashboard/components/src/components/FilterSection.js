@@ -54,7 +54,7 @@ const FilterSection = ({
           }}
         />
 
-        <div ref={dropdownRef} style={{ position: "relative" }}>
+        {/* <div ref={dropdownRef} style={{ position: "relative" }}>
           <button
             onClick={() => setShowStatusDropdown((prev) => !prev)}
             style={{
@@ -121,7 +121,7 @@ const FilterSection = ({
               ))}
             </div>
           )}
-        </div>
+        </div> */}
 
         <select
           value={selectedProject}

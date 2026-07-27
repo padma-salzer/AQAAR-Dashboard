@@ -62,7 +62,7 @@ const TicketTable = ({
                 <th style={thStyle}>Summary</th>
                 <th style={thStyle}>Status</th>
                 <th style={thStyle}>Issue Category</th>
-                <th style={{ ...thStyle, borderRight: "none" }}>
+                <th style={{ ...thStyle}}>
                   Created
                 </th>
                 <th style={{ ...thStyle, borderRight: "none" }}>
@@ -106,16 +106,12 @@ const TicketTable = ({
                      {issue.fields.customfield_10778?.value || "-"}
                   </td>
 
-                  <td>
+                  <td style={tdStyle}>
                     {new Date(
                       issue.fields.created
                     ).toLocaleDateString("en-GB")}
                   </td>
-                  <td
-                  style={{
-                      ...tdStyle,
-                      borderRight: "none",
-                    }}>
+                  <td>
                     {issue.fields.resolutiondate
                       ? new Date(issue.fields.resolutiondate).toLocaleDateString("en-GB")
                       : "-"}

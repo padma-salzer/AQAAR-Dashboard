@@ -203,13 +203,13 @@ AND cf[10884] = "Breached"`;
               </span>
             )}
           </div> */}
-          <SlaRow
+          {/* <SlaRow
             title="Priority - Time to First Response"
             metCount={slaData[2]?.count || 0}
             breachedCount={slaData[3]?.count || 0}
             metJql={priorityResponseMetJql}
             breachedJql={priorityResponseBreachedJql}
-          />
+          /> */}
 
           {/* Time to Resolution */}
           {/* <div
@@ -320,13 +320,13 @@ AND cf[10885] = "Breached"`;
               </span>
             )}
           </div> */}
-          <SlaRow
+          {/* <SlaRow
             title="Priority - Time to Resolution"
             metCount={slaData[0]?.count || 0}
             breachedCount={slaData[1]?.count || 0}
             metJql={priorityResolutionMetJql}
             breachedJql={priorityResolutionBreachedJql}
-          />
+          /> */}
 
           {/* Severity Time to First Response */}
           {/* <div
