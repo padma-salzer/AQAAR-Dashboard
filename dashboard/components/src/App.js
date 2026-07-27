@@ -93,14 +93,14 @@ const App = () => {
     doc.roundedRect(
       PAGE_MARGIN,
       PAGE_MARGIN,
-      pageWidth - (PAGE_MARGIN * 2),
-      pageHeight - (PAGE_MARGIN * 2),
-      4,   // x-radius
-      4,   // y-radius
-      "S"
+      pageWidth - PAGE_MARGIN * 2,
+      pageHeight - PAGE_MARGIN * 2,
+      4, // x-radius
+      4, // y-radius
+      "S",
     );
   };
-  
+
   // helper function to add header to pdf
   const addHeader = (doc) => {
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -111,22 +111,10 @@ const App = () => {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(15);
     doc.setTextColor(25, 55, 109);
-    doc.text(
-      "AQAAR Report",
-      pageWidth / 2,
-      22,
-      { align: "center" }
-    );
+    doc.text("AQAAR Report", pageWidth / 2, 22, { align: "center" });
 
     // Company Logo
-    doc.addImage(
-      salzerLogo,
-      "PNG",
-      pageWidth - 45,
-      14,
-      24,
-      8
-    );
+    doc.addImage(salzerLogo, "PNG", pageWidth - 45, 14, 24, 8);
 
     // Header Line
     // doc.setDrawColor(180);
@@ -150,12 +138,9 @@ const App = () => {
 
     const pageText = `Page ${pageNumber} of ${totalPages}`;
 
-    doc.text(
-      pageText,
-      pageWidth - RIGHT_MARGIN,
-      pageHeight - PAGE_MARGIN - 6,
-      { align: "right" }
-    );
+    doc.text(pageText, pageWidth - RIGHT_MARGIN, pageHeight - PAGE_MARGIN - 6, {
+      align: "right",
+    });
   };
 
   const formatDate = (date) => {
@@ -168,9 +153,8 @@ const App = () => {
 
   // Export pdf button
   const handleExportPDF = async () => {
-
     const selectedProjectObj = projects.find(
-      (project) => project.key === selectedProject
+      (project) => project.key === selectedProject,
     );
 
     const projectName = selectedProjectObj
@@ -179,12 +163,20 @@ const App = () => {
 
     //Donut Charts
     const donutElement = document.getElementById("status-donut");
-    const canvas = await html2canvas(donutElement);
+    const canvas = await html2canvas(donutElement, {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+    });
     const image = canvas.toDataURL("image/png");
 
     // Active Status Donut
     const activeElement = document.getElementById("active-status-donut");
-    const activeCanvas = await html2canvas(activeElement);
+    const activeCanvas = await html2canvas(activeElement, {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+    });
     const activeImage = activeCanvas.toDataURL("image/png");
     // SLA Section
     const slaElement = document.getElementById("sla-section");
@@ -204,9 +196,9 @@ const App = () => {
       issue.fields.status.name,
       issue.fields.customfield_10778?.value || "-",
       new Date(issue.fields.created).toLocaleDateString(),
-       issue.fields.resolutiondate
-      ? formatDate(issue.fields.resolutiondate)
-      : "-",
+      issue.fields.resolutiondate
+        ? new Date(issue.fields.resolutiondate).toLocaleDateString()
+        : "-",
     ]);
 
     const doc = new jsPDF();
@@ -225,14 +217,14 @@ const App = () => {
     doc.setFillColor(250, 252, 255);
     doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 3, 3, "FD");
 
-        // Project Icon
+    // Project Icon
     doc.addImage(projectIcon, "PNG", boxX + 6, boxY + 9, 8, 8);
 
     // PROJECT label
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(41, 98, 255);
-    doc.text("PROJECT :",  boxX + 17, boxY + 13);
+    doc.text("PROJECT :", boxX + 17, boxY + 13);
 
     // Project Name
     const labelWidth = doc.getTextWidth("PROJECT :") + 3;
@@ -246,7 +238,7 @@ const App = () => {
     doc.line(boxX, boxY + 20, boxX + boxWidth, boxY + 20);
 
     //from date
-   doc.addImage(calendarIcon, "PNG", boxX + 8, boxY + 24, 6, 6);
+    doc.addImage(calendarIcon, "PNG", boxX + 8, boxY + 24, 6, 6);
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
@@ -265,7 +257,6 @@ const App = () => {
     doc.setTextColor(41, 98, 255);
     doc.text("TO DATE", boxX + 114, boxY + 28);
 
-
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(25, 55, 109);
@@ -280,22 +271,21 @@ const App = () => {
     // doc.text(`From Date: ${fromDate}`, LEFT_MARGIN, y);
     // doc.text(`To Date: ${toDate}`, 110, y);
     // y += 10;
-  
+
     //Donut Charts
     const statusHeight = (canvas.height * imgWidth) / canvas.width;
     doc.addImage(image, "PNG", 20, y, imgWidth, statusHeight);
     y += statusHeight + 10;
-  
+
     // Active Status Donut
-    const activeHeight =
-      (activeCanvas.height * imgWidth) / activeCanvas.width;
+    const activeHeight = (activeCanvas.height * imgWidth) / activeCanvas.width;
     doc.addImage(activeImage, "PNG", 20, y, imgWidth, activeHeight);
     y += activeHeight + 10;
     // SLA Section
     // doc.addPage();
     // addHeader(doc);
     // addPageBorder(doc);
-    
+
     const slaHeight = (slaCanvas.height * imgWidth) / slaCanvas.width;
     doc.addImage(slaImage, "PNG", 20, y, 170, slaHeight + 15);
     y += activeHeight + 20;
@@ -305,21 +295,16 @@ const App = () => {
     let tableStartY = 30;
     doc.setTextColor(25, 55, 109);
     doc.setFontSize(10);
-    doc.text("All Ticket Details", 12, tableStartY + 3);
+    doc.text("All Ticket Details", 15, tableStartY + 3);
     autoTable(doc, {
       startY: tableStartY + 6,
-      head: [[
-        "Key",
-        "Summary",
-        "Status",
-        "Issue Type",
-        "Created"
-      ]],
+      head: [
+        ["Key", "Summary", "Status", "Issue Type", "Created", "Resolution"],
+      ],
       body: tableRows,
       didDrawPage: () => {
         addHeader(doc);
         addPageBorder(doc);
-        
       },
       styles: {
         fontSize: 8,
@@ -346,41 +331,41 @@ const App = () => {
   const fetchAllTickets = async () => {
     let jql = "";
     if (selectedProject) {
-        jql += `project = "${selectedProject}"`;
+      jql += `project = "${selectedProject}"`;
     }
     let allTickets = [];
     let nextPageToken = null;
     do {
-        const body = {
-            jql,
-            maxResults: 100,
-            fields: [
-                "summary",
-                "assignee",
-                "status",
-                "created",
-                "resolutiondate", 
-                "customfield_10778"
-            ],
-        };
-        if (nextPageToken) {
-            body.nextPageToken = nextPageToken;
-        }
-        const response = await requestJira("/rest/api/3/search/jql", {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-        });
-        const data = await response.json();
-        if (!data.issues) break;
-        allTickets.push(...data.issues);
-        nextPageToken = data.nextPageToken;
+      const body = {
+        jql,
+        maxResults: 100,
+        fields: [
+          "summary",
+          "assignee",
+          "status",
+          "created",
+          "resolutiondate",
+          "customfield_10778",
+        ],
+      };
+      if (nextPageToken) {
+        body.nextPageToken = nextPageToken;
+      }
+      const response = await requestJira("/rest/api/3/search/jql", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json();
+      if (!data.issues) break;
+      allTickets.push(...data.issues);
+      nextPageToken = data.nextPageToken;
     } while (nextPageToken);
     return allTickets;
-};
+  };
 
   // Function to handle status filter click for open issues
   const fetchOpenStatusSummary = async () => {
@@ -550,22 +535,20 @@ const App = () => {
       projectStatusFilter.length === 0
         ? allProjects
         : allProjects.filter((project) => {
-          const category = project.projectCategory?.name;
-          return category && projectStatusFilter.includes(category);
-        });
+            const category = project.projectCategory?.name;
+            return category && projectStatusFilter.includes(category);
+          });
 
     console.log(filtered);
 
     // ADD THIS FILTER
     const jiraOnly = filtered.filter(
       //(project) => project.projectTypeKey === "software"
-      (project) => project.projectTypeKey === "service_desk"
+      (project) => project.projectTypeKey === "service_desk",
     );
 
     //SORT
-    const sorted = [...jiraOnly].sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
+    const sorted = [...jiraOnly].sort((a, b) => a.name.localeCompare(b.name));
 
     setProjects(sorted);
 
@@ -723,7 +706,14 @@ const App = () => {
       const body = {
         jql,
         maxResults: pageSize,
-        fields: ["summary", "status", "issuecategory", "created","resolutiondate", "customfield_10778"],      
+        fields: [
+          "summary",
+          "status",
+          "issuecategory",
+          "created",
+          "resolutiondate",
+          "customfield_10778",
+        ],
         //fields: ["*all"]
       };
 
@@ -778,11 +768,11 @@ const App = () => {
           jql,
           maxResults: 100,
           fields: [
-          SLA_FIELDS.priorityResponse,
-          SLA_FIELDS.priorityResolution,
-          SLA_FIELDS.severityResponse,
-          SLA_FIELDS.severityResolution,
-          "status",
+            SLA_FIELDS.priorityResponse,
+            SLA_FIELDS.priorityResolution,
+            SLA_FIELDS.severityResponse,
+            SLA_FIELDS.severityResolution,
+            "status",
           ], // ✅ add status
         };
 
@@ -842,8 +832,7 @@ const App = () => {
         ) {
           slaFieldExists = true;
         }
-        const statusCategory =
-          issue.fields.status?.statusCategory?.name;
+        const statusCategory = issue.fields.status?.statusCategory?.name;
 
         // 🔹 Resolution SLA (Done only)
         if (statusCategory === "Done" && priorityResolutionField?.value) {
@@ -861,7 +850,6 @@ const App = () => {
             severityResolutionGrouped.Breached++;
           }
         }
-
 
         // 🔹 Response SLA (ALL tickets)
         if (priorityResponseField?.value) {
@@ -885,22 +873,46 @@ const App = () => {
 
       // ✅ SET STATE HERE (AFTER LOOP)
       setSlaData([
-        { label: "Priority Resolution SLA - Met", count: priorityResolutionGrouped.Met },
-        { label: "Priority Resolution SLA - Breached", count: priorityResolutionGrouped.Breached },
-        { label: "Priority Response SLA - Met", count: priorityResponseGrouped.Met },
-        { label: "Priority Response SLA - Breached", count: priorityResponseGrouped.Breached },
+        {
+          label: "Priority Resolution SLA - Met",
+          count: priorityResolutionGrouped.Met,
+        },
+        {
+          label: "Priority Resolution SLA - Breached",
+          count: priorityResolutionGrouped.Breached,
+        },
+        {
+          label: "Priority Response SLA - Met",
+          count: priorityResponseGrouped.Met,
+        },
+        {
+          label: "Priority Response SLA - Breached",
+          count: priorityResponseGrouped.Breached,
+        },
 
         // Severity
-        { label: "Severity Resolution SLA - Met", count: severityResolutionGrouped.Met },
-        { label: "Severity Resolution SLA - Breached", count: severityResolutionGrouped.Breached },
-        { label: "Severity Response SLA - Met", count: severityResponseGrouped.Met },
-        { label: "Severity Response SLA - Breached", count: severityResponseGrouped.Breached },
+        {
+          label: "Severity Resolution SLA - Met",
+          count: severityResolutionGrouped.Met,
+        },
+        {
+          label: "Severity Resolution SLA - Breached",
+          count: severityResolutionGrouped.Breached,
+        },
+        {
+          label: "Severity Response SLA - Met",
+          count: severityResponseGrouped.Met,
+        },
+        {
+          label: "Severity Response SLA - Breached",
+          count: severityResponseGrouped.Breached,
+        },
       ]);
     } catch (error) {
       console.error("Error fetching SLA data:", error);
     }
   };
-  
+
   // need to delete this function
   // const total = statusData.reduce((sum, item) => sum + item.count, 0);
   // //const total = totalStatusTickets;
@@ -984,7 +996,6 @@ const App = () => {
     background: "transparent",
   };
 
-
   return (
     <div
       style={{
@@ -1013,7 +1024,8 @@ const App = () => {
             cursor: "pointer",
             fontWeight: "500",
             fontSize: "16px",
-          }}>
+          }}
+        >
           Export PDF
         </button>
       </div>
@@ -1050,12 +1062,26 @@ const App = () => {
           fetchSLAData();
           fetchOpenStatusSummary();
         }}
-         onExportPDF={handleExportPDF}
+        onExportPDF={handleExportPDF}
       />
       {/* CHARTS ROW */}
-      <div style={{ display: "flex", gap: "20px", marginBottom: "24px" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "20px",
+          marginBottom: "24px",
+          alignItems: "stretch",
+        }}
+      >
         {/* STATUS CREATED */}
-        <div id="status-donut">
+        <div
+          id="status-donut"
+          style={{
+            flex: 1,
+            minWidth: 0,
+            display: "flex",
+          }}
+        >
           <StatusDonut
             statusData={statusData}
             fromDate={fromDate}
@@ -1065,7 +1091,14 @@ const App = () => {
         </div>
 
         {/* ACTIVE */}
-        <div id="active-status-donut">
+        <div
+          id="active-status-donut"
+          style={{
+            flex: 1,
+            minWidth: 0,
+            display: "flex",
+          }}
+        >
           <ActiveStatusDonut
             openStatusData={openStatusData}
             selectedProject={selectedProject}
@@ -1077,10 +1110,10 @@ const App = () => {
       <div id="sla-section">
         <SlaSection
           hasSLAConfigured={hasSLAConfigured}
-          hasPriorityResolutionData = {hasPriorityResolutionData}
-          hasPriorityResponseData = {hasPriorityResponseData}
-          hasSeverityResolutionData = {hasSeverityResolutionData}
-          hasSeverityResponseData = {hasSeverityResponseData}
+          hasPriorityResolutionData={hasPriorityResolutionData}
+          hasPriorityResponseData={hasPriorityResponseData}
+          hasSeverityResolutionData={hasSeverityResolutionData}
+          hasSeverityResponseData={hasSeverityResponseData}
           // hasResponseData={hasResponseData}
           // hasResolutionData={hasResolutionData}
           slaData={slaData}
