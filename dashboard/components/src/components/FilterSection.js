@@ -99,7 +99,7 @@ const FilterSection = ({
                 width: "180px",
               }}
             >
-              {["Active", "Inactive", "Completed", "Others"].map((status) => (
+              {["Others"].map((status) => (
                 <label
                   key={status}
                   style={{

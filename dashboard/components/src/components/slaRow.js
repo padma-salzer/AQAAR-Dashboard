@@ -37,7 +37,7 @@ const SlaRow = ({
           router.open(`/issues/?jql=${encodeURIComponent(metJql)}`)
         }
       >
-        <span>Met</span>
+        <span style={{fontSize: "20px"}}>Met</span>
 
         <span
           style={{
@@ -60,7 +60,7 @@ const SlaRow = ({
           router.open(`/issues/?jql=${encodeURIComponent(breachedJql)}`)
         }
       >
-        <span>Breached</span>
+        <span style={{fontSize: "20px"}}>Breached</span>
 
         <span
           style={{
