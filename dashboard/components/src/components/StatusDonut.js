@@ -20,10 +20,11 @@ const StatusDonut = ({ statusData, fromDate, toDate, selectedProject }) => {
     <div
       style={{
         ...card,
+        paddingTop: "18px",
         flex: 1,
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         minHeight: "270px",
       }}
     >
@@ -32,7 +33,7 @@ const StatusDonut = ({ statusData, fromDate, toDate, selectedProject }) => {
           display: "flex",
           alignItems: "center",
           minHeight: "34px",
-          marginBottom: "16px",
+          marginBottom: "10px",
         }}
       >
         <h2
@@ -64,7 +65,7 @@ const StatusDonut = ({ statusData, fromDate, toDate, selectedProject }) => {
               alignItems: "center",
             }}
           >
-            <svg width="230" height="230" viewBox="0 0 200 200">
+            <svg width="205" height="205" viewBox="0 0 200 200">
               <g transform="rotate(-90 100 100)">
                 {(() => {
                   let cumulative = 0;

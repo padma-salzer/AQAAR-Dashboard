@@ -16,7 +16,6 @@ const SlaSection = ({
   toDate,
   selectedProject,
 }) => {
-
   const priorityResponseMetJql = `
 created >= "${fromDate}"
 AND created <= "${toDate} 23:59"
@@ -33,7 +32,7 @@ AND cf[10884] = "Breached"
 ${selectedProject ? `AND project = "${selectedProject}"` : ""}
 `;
 
-const priorityResolutionMetJql = `
+  const priorityResolutionMetJql = `
 created >= "${fromDate}"
 AND created <= "${toDate} 23:59"
 AND status NOT IN ("Canceled")
@@ -41,7 +40,7 @@ AND cf[10885] = "Met"
 ${selectedProject ? `AND project = "${selectedProject}"` : ""}
 `;
 
- const priorityResolutionBreachedJql = `
+  const priorityResolutionBreachedJql = `
 created >= "${fromDate}"
 AND created <= "${toDate} 23:59"
 AND status NOT IN ("Canceled")
@@ -49,7 +48,7 @@ AND cf[10885] = "Breached"
 ${selectedProject ? `AND project = "${selectedProject}"` : ""}
 `;
 
-const severityResponseMetJql = `
+  const severityResponseMetJql = `
 created >= "${fromDate}"
 AND created <= "${toDate} 23:59"
 AND status NOT IN ("Canceled")
@@ -57,7 +56,7 @@ AND cf[10882] = "Met"
 ${selectedProject ? `AND project = "${selectedProject}"` : ""}
 `;
 
- const severityResponseBreachedJql = `
+  const severityResponseBreachedJql = `
 created >= "${fromDate}"
 AND created <= "${toDate} 23:59"
 AND status NOT IN ("Canceled")
@@ -65,7 +64,7 @@ AND cf[10882] = "Breached"
 ${selectedProject ? `AND project = "${selectedProject}"` : ""}
 `;
 
-const severityResolutionMetJql = `
+  const severityResolutionMetJql = `
 created >= "${fromDate}"
 AND created <= "${toDate} 23:59"
 AND status NOT IN ("Canceled")
@@ -73,7 +72,7 @@ AND cf[10883] = "Met"
 ${selectedProject ? `AND project = "${selectedProject}"` : ""}
 `;
 
- const severityResolutionBreachedJql = `
+  const severityResolutionBreachedJql = `
 created >= "${fromDate}"
 AND created <= "${toDate} 23:59"
 AND status NOT IN ("Canceled")
@@ -82,7 +81,15 @@ ${selectedProject ? `AND project = "${selectedProject}"` : ""}
 `;
 
   return (
-    <div style={{ ...card, marginBottom: "24px" }}>
+    <div
+      style={{
+        ...card,
+        marginBottom: "16px",
+        paddingTop: "18px",
+        paddingLeft: "18px",
+        paddingRight: "18px",
+      }}
+    >
       <h2 style={sectionTitle}>SLA Performance</h2>
 
       {!hasSLAConfigured ? (
@@ -196,13 +203,13 @@ AND cf[10884] = "Breached"`;
               </span>
             )}
           </div> */}
-            <SlaRow
-              title="Priority - Time to First Response"
-              metCount={slaData[2]?.count || 0}
-              breachedCount={slaData[3]?.count || 0}
-              metJql={priorityResponseMetJql}
-              breachedJql={priorityResponseBreachedJql}
-            />
+          <SlaRow
+            title="Priority - Time to First Response"
+            metCount={slaData[2]?.count || 0}
+            breachedCount={slaData[3]?.count || 0}
+            metJql={priorityResponseMetJql}
+            breachedJql={priorityResponseBreachedJql}
+          />
 
           {/* Time to Resolution */}
           {/* <div
@@ -314,12 +321,12 @@ AND cf[10885] = "Breached"`;
             )}
           </div> */}
           <SlaRow
-              title="Priority - Time to Resolution"
-              metCount={slaData[0]?.count || 0}
-              breachedCount={slaData[1]?.count || 0}
-              metJql={priorityResolutionMetJql}
-              breachedJql={priorityResolutionBreachedJql}
-            />
+            title="Priority - Time to Resolution"
+            metCount={slaData[0]?.count || 0}
+            breachedCount={slaData[1]?.count || 0}
+            metJql={priorityResolutionMetJql}
+            breachedJql={priorityResolutionBreachedJql}
+          />
 
           {/* Severity Time to First Response */}
           {/* <div
@@ -427,12 +434,12 @@ AND cf[10882] = "Breached"`;
             )}
           </div> */}
           <SlaRow
-              title="Severity - Time to First Response"
-              metCount={slaData[6]?.count || 0}
-              breachedCount={slaData[7]?.count || 0}
-              metJql={severityResponseMetJql}
-              breachedJql={severityResponseBreachedJql}
-            />
+            title="Severity - Time to First Response"
+            metCount={slaData[6]?.count || 0}
+            breachedCount={slaData[7]?.count || 0}
+            metJql={severityResponseMetJql}
+            breachedJql={severityResponseBreachedJql}
+          />
           {/* Severity Time to Resolution */}
           {/* <div
             style={{
@@ -543,12 +550,12 @@ AND cf[10883] = "Breached"`;
             )}
           </div> */}
           <SlaRow
-              title="Severity - Time to Resolution"
-              metCount={slaData[0]?.count || 0}
-              breachedCount={slaData[1]?.count || 0}
-              metJql={severityResolutionMetJql}
-              breachedJql={severityResolutionBreachedJql}
-            />
+            title="Severity - Time to Resolution"
+            metCount={slaData[0]?.count || 0}
+            breachedCount={slaData[1]?.count || 0}
+            metJql={severityResolutionMetJql}
+            breachedJql={severityResolutionBreachedJql}
+          />
         </>
       )}
     </div>

@@ -49,6 +49,7 @@ const App = () => {
   const [error, setError] = useState("");
   const dropdownRef = useRef(null);
   const [hasSLAConfigured, setHasSLAConfigured] = useState(true);
+  const [exportingPdf, setExportingPdf] = useState(false);
   //const [totalStatusTickets, setTotalStatusTickets] = useState(0);
 
   // const hasResolutionData =
@@ -79,24 +80,24 @@ const App = () => {
         : [...prev, status],
     );
   };
-  const PAGE_MARGIN = 10;
-  const LEFT_MARGIN = 20;
-  const RIGHT_MARGIN = 20;
+  const PAGE_MARGIN = 6;
+  const LEFT_MARGIN = 15;
+  const RIGHT_MARGIN = 15;
   // helper function to add border to pdf
   const addPageBorder = (doc) => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
     doc.setDrawColor(0, 153, 76);
-    doc.setLineWidth(1);
+    doc.setLineWidth(0.5);
 
     doc.roundedRect(
       PAGE_MARGIN,
       PAGE_MARGIN,
       pageWidth - PAGE_MARGIN * 2,
       pageHeight - PAGE_MARGIN * 2,
-      4, // x-radius
-      4, // y-radius
+      3, // x-radius
+      3, // y-radius
       "S",
     );
   };
@@ -105,16 +106,17 @@ const App = () => {
   const addHeader = (doc) => {
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    doc.addImage(aqaarLogo, "PNG", 12, 14, 24, 12);
+    // Aqaar Logo
+    doc.addImage(aqaarLogo, "PNG", 14, 13, 24, 10);
 
     // Report Title
     doc.setFont("helvetica", "bold");
     doc.setFontSize(15);
     doc.setTextColor(25, 55, 109);
-    doc.text("AQAAR Report", pageWidth / 2, 22, { align: "center" });
+    doc.text("AQAAR Report", pageWidth / 2, 20, { align: "center" });
 
     // Company Logo
-    doc.addImage(salzerLogo, "PNG", pageWidth - 45, 14, 24, 8);
+    doc.addImage(salzerLogo, "PNG", pageWidth - 39, 15, 22, 8);
 
     // Header Line
     // doc.setDrawColor(180);
@@ -153,178 +155,200 @@ const App = () => {
 
   // Export pdf button
   const handleExportPDF = async () => {
-    const selectedProjectObj = projects.find(
-      (project) => project.key === selectedProject,
-    );
+    try {
+      setExportingPdf(true);
+      const selectedProjectObj = projects.find(
+        (project) => project.key === selectedProject,
+      );
 
-    const projectName = selectedProjectObj
-      ? selectedProjectObj.name
-      : selectedProject;
+      const projectName = selectedProjectObj
+        ? selectedProjectObj.name
+        : selectedProject;
 
-    //Donut Charts
-    const donutElement = document.getElementById("status-donut");
-    const canvas = await html2canvas(donutElement, {
-      scale: 3,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-    });
-    const image = canvas.toDataURL("image/png");
+      //Donut Charts
+      const donutElement = document.getElementById("status-donut");
+      const canvas = await html2canvas(donutElement, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+      const image = canvas.toDataURL("image/png");
 
-    // Active Status Donut
-    const activeElement = document.getElementById("active-status-donut");
-    const activeCanvas = await html2canvas(activeElement, {
-      scale: 3,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-    });
-    const activeImage = activeCanvas.toDataURL("image/png");
-    // SLA Section
-    const slaElement = document.getElementById("sla-section");
-    const slaCanvas = await html2canvas(slaElement, {
-      scale: 3,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-    });
-    const slaImage = slaCanvas.toDataURL("image/png");
-    const imgWidth = 100;
+      // Active Status Donut
+      const activeElement = document.getElementById("active-status-donut");
+      const activeCanvas = await html2canvas(activeElement, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+      const activeImage = activeCanvas.toDataURL("image/png");
+      // SLA Section
+      const slaElement = document.getElementById("sla-section");
+      const slaCanvas = await html2canvas(slaElement, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+      const slaImage = slaCanvas.toDataURL("image/png");
+      const PDF_CONTENT_WIDTH = 180;
 
-    //PDF
-    const allTickets = await fetchAllTickets();
-    const tableRows = allTickets.map((issue) => [
-      issue.key,
-      issue.fields.summary,
-      issue.fields.status.name,
-      issue.fields.customfield_10778?.value || "-",
-      new Date(issue.fields.created).toLocaleDateString(),
-      issue.fields.resolutiondate
-        ? new Date(issue.fields.resolutiondate).toLocaleDateString()
-        : "-",
-    ]);
+      const scale = PDF_CONTENT_WIDTH / canvas.width;
 
-    const doc = new jsPDF();
-    addHeader(doc);
-    addPageBorder(doc);
-    let y = 30;
+      //PDF
+      const allTickets = await fetchAllTickets();
+      const tableRows = allTickets.map((issue) => [
+        issue.key,
+        issue.fields.summary,
+        issue.fields.status.name,
+        issue.fields.customfield_10778?.value || "-",
+        new Date(issue.fields.created).toLocaleDateString(),
+        issue.fields.resolutiondate
+          ? new Date(issue.fields.resolutiondate).toLocaleDateString()
+          : "-",
+      ]);
 
-    // STEP 1 - Draw the information box
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const boxX = LEFT_MARGIN;
-    const boxY = y;
-    const boxWidth = pageWidth - LEFT_MARGIN - RIGHT_MARGIN;
-    const boxHeight = 42;
+      const doc = new jsPDF();
+      addHeader(doc);
+      addPageBorder(doc);
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let y = 30;
 
-    doc.setDrawColor(210, 220, 235);
-    doc.setFillColor(250, 252, 255);
-    doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 3, 3, "FD");
+      // y = 34;
 
-    // Project Icon
-    doc.addImage(projectIcon, "PNG", boxX + 6, boxY + 9, 8, 8);
+      // doc.setFont("helvetica", "bold");
+      // doc.setFontSize(11);
+      // doc.setTextColor(110);
 
-    // PROJECT label
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(41, 98, 255);
-    doc.text("PROJECT :", boxX + 17, boxY + 13);
+      // doc.text("Project", LEFT_MARGIN, y);
 
-    // Project Name
-    const labelWidth = doc.getTextWidth("PROJECT :") + 3;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(25, 55, 109);
-    doc.text(projectName, boxX + 17 + labelWidth, boxY + 13);
+      // doc.setFontSize(14);
+      // doc.setTextColor(25, 55, 109);
 
-    // Divider
-    doc.setDrawColor(225);
-    doc.line(boxX, boxY + 20, boxX + boxWidth, boxY + 20);
+      // doc.text(projectName, LEFT_MARGIN, y + 7);
 
-    //from date
-    doc.addImage(calendarIcon, "PNG", boxX + 8, boxY + 24, 6, 6);
+      // y += 15;
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(41, 98, 255);
-    doc.text("FROM DATE", boxX + 17, boxY + 28);
+      // doc.setFontSize(11);
+      // doc.setTextColor(110);
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(25, 55, 109);
-    doc.text(formattedFrom, boxX + 17, boxY + 35);
+      // doc.text("Report Period", LEFT_MARGIN, y);
 
-    //To date
-    doc.addImage(calendarIcon, "PNG", boxX + 105, boxY + 24, 6, 6);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(41, 98, 255);
-    doc.text("TO DATE", boxX + 114, boxY + 28);
+      // doc.setFontSize(12);
+      // doc.setTextColor(25, 55, 109);
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(25, 55, 109);
-    doc.text(formattedTo, boxX + 114, boxY + 35);
-    // Move Y below the information box
-    y = boxY + boxHeight + 10;
+      // doc.text(`${formattedFrom} - ${formattedTo}`, LEFT_MARGIN, y + 7);
 
-    // doc.setFont("helvetica", "normal");
-    // doc.setFontSize(12);
-    // doc.text(`Project: ${projectName}`, LEFT_MARGIN, y);
-    // y += 10;
-    // doc.text(`From Date: ${fromDate}`, LEFT_MARGIN, y);
-    // doc.text(`To Date: ${toDate}`, 110, y);
-    // y += 10;
+      // y += 14;
 
-    //Donut Charts
-    const statusHeight = (canvas.height * imgWidth) / canvas.width;
-    doc.addImage(image, "PNG", 20, y, imgWidth, statusHeight);
-    y += statusHeight + 10;
+      y = 38;
 
-    // Active Status Donut
-    const activeHeight = (activeCanvas.height * imgWidth) / activeCanvas.width;
-    doc.addImage(activeImage, "PNG", 20, y, imgWidth, activeHeight);
-    y += activeHeight + 10;
-    // SLA Section
-    // doc.addPage();
-    // addHeader(doc);
-    // addPageBorder(doc);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(110);
 
-    const slaHeight = (slaCanvas.height * imgWidth) / slaCanvas.width;
-    doc.addImage(slaImage, "PNG", 20, y, 170, slaHeight + 15);
-    y += activeHeight + 20;
-    doc.addPage();
-    addHeader(doc);
-    addPageBorder(doc);
-    let tableStartY = 30;
-    doc.setTextColor(25, 55, 109);
-    doc.setFontSize(10);
-    doc.text("All Ticket Details", 15, tableStartY + 3);
-    autoTable(doc, {
-      startY: tableStartY + 6,
-      head: [
-        ["Key", "Summary", "Status", "Issue Type", "Created", "Resolution"],
-      ],
-      body: tableRows,
-      didDrawPage: () => {
-        addHeader(doc);
-        addPageBorder(doc);
-      },
-      styles: {
-        fontSize: 8,
-        cellPadding: 2,
-        valign: "middle",
-        overflow: "linebreak",
-      },
-      headStyles: {
-        fillColor: [41, 128, 185],
-        textColor: 255,
-        fontStyle: "bold",
-      },
-    });
-    const totalPages = doc.getNumberOfPages();
+      doc.text("Project:", LEFT_MARGIN, y);
 
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i);
-      addFooter(doc, i, totalPages);
+      doc.setTextColor(25, 55, 109);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+
+      doc.text(projectName, 34, y);
+
+      doc.setTextColor(110);
+      doc.setFontSize(11);
+
+      doc.text("Report Period:", 112, y);
+
+      doc.setTextColor(25, 55, 109);
+      doc.setFontSize(12);
+
+      doc.text(`${formattedFrom} - ${formattedTo}`, 146, y);
+
+      y += 8;
+
+      // doc.setFont("helvetica", "normal");
+      // doc.setFontSize(12);
+      // doc.text(`Project: ${projectName}`, LEFT_MARGIN, y);
+      // y += 10;
+      // doc.text(`From Date: ${fromDate}`, LEFT_MARGIN, y);
+      // doc.text(`To Date: ${toDate}`, 110, y);
+      // y += 10;
+
+      //Donut Charts
+      const statusWidth = canvas.width * scale;
+      const statusHeight = canvas.height * scale;
+
+      doc.addImage(image, "PNG", LEFT_MARGIN, y, statusWidth, statusHeight);
+
+      y += statusHeight + 2;
+
+      // Active Status Donut
+      const activeWidth = activeCanvas.width * scale;
+
+      const activeHeight = activeCanvas.height * scale;
+
+      doc.addImage(
+        activeImage,
+        "PNG",
+        LEFT_MARGIN,
+        y,
+        activeWidth,
+        activeHeight,
+      );
+
+      y += activeHeight + 2;
+
+      const slaWidth = statusWidth;
+
+      const slaHeight = slaCanvas.height * scale * 0.92;
+
+      doc.addImage(slaImage, "PNG", LEFT_MARGIN, y, slaWidth, slaHeight);
+
+      y += slaHeight;
+
+      doc.addPage();
+      addHeader(doc);
+      addPageBorder(doc);
+      let tableStartY = 34;
+      doc.setTextColor(25, 55, 109);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("All Ticket Details", LEFT_MARGIN, tableStartY);
+      autoTable(doc, {
+        startY: tableStartY + 6,
+        head: [
+          ["Key", "Summary", "Status", "Issue Type", "Created", "Resolved"],
+        ],
+        body: tableRows,
+        didDrawPage: () => {
+          addHeader(doc);
+          addPageBorder(doc);
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 2,
+          valign: "middle",
+          overflow: "linebreak",
+        },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+      });
+      const totalPages = doc.getNumberOfPages();
+
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        addFooter(doc, i, totalPages);
+      }
+      doc.save("Jira_Dashboard_Report.pdf");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setExportingPdf(false);
     }
-    doc.save("Jira_Dashboard_Report.pdf");
   };
 
   // Fetch all tickets for pdf table export
@@ -1013,20 +1037,20 @@ const App = () => {
         }}
       >
         <button
-          className="export-btn"
           onClick={handleExportPDF}
+          disabled={exportingPdf}
           style={{
             padding: "8px 18px",
-            backgroundColor: "#0052CC",
+            backgroundColor: exportingPdf ? "#6B778C" : "#0052CC",
             color: "white",
             border: "none",
             borderRadius: "6px",
-            cursor: "pointer",
+            cursor: exportingPdf ? "not-allowed" : "pointer",
             fontWeight: "500",
             fontSize: "16px",
           }}
         >
-          Export PDF
+          {exportingPdf ? "⏳ Generating PDF..." : "📄 Export PDF"}
         </button>
       </div>
       {/* FILTER BAR */}
