@@ -80,6 +80,52 @@ const App = () => {
         : [...prev, status],
     );
   };
+
+ // Fetch all tickets for pdf table export
+  const fetchAllTickets = async (jql = "") => {
+    // if (selectedProject) {
+    //   jql += `project = "${selectedProject}"`;
+    // }
+    let allTickets = [];
+    let nextPageToken = null;
+    do {
+      const body = {
+        jql,
+        maxResults: 100,
+        fields: [
+          "summary",
+          "assignee",
+          "status",
+          "created",
+          "resolutiondate",
+          "customfield_10778",
+          "customfield_10884",
+          "customfield_10885"
+
+        ],
+      };
+      if (nextPageToken) {
+        body.nextPageToken = nextPageToken;
+      }
+
+      console.log("JQL:", jql);
+      const response = await requestJira("/rest/api/3/search/jql", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json();
+      console.log("data", data)
+      if (!data.issues) break;
+      allTickets.push(...data.issues);
+      nextPageToken = data.nextPageToken;
+    } while (nextPageToken);
+    return allTickets;
+  };
+
   const PAGE_MARGIN = 6;
   const LEFT_MARGIN = 15;
   const RIGHT_MARGIN = 15;
@@ -190,13 +236,47 @@ const App = () => {
       //   backgroundColor: "#ffffff",
       // });
       // const slaImage = slaCanvas.toDataURL("image/png");
+
+      const responseBreachedTickets = await fetchAllTickets(
+        `project = "${selectedProject}" AND cf[10882] = "Breached"`
+      );
+
+      const resolutionBreachedTickets = await fetchAllTickets(
+        `project = "${selectedProject}" AND cf[10883] = "Breached"`
+      );
+
+      const allTicketsDetails = await fetchAllTickets(
+        `project = "${selectedProject}"`
+      );
       const PDF_CONTENT_WIDTH = 180;
 
       const scale = PDF_CONTENT_WIDTH / canvas.width;
 
+      const responseBreachedRows = responseBreachedTickets.map((issue) => [
+        issue.key,
+        issue.fields.summary,
+        issue.fields.status.name,
+        issue.fields.customfield_10778?.value || "-",
+        new Date(issue.fields.created).toLocaleDateString(),
+        issue.fields.resolutiondate
+          ? new Date(issue.fields.resolutiondate).toLocaleDateString()
+          : "-",
+      ]);
+
+      const resolutionBreachedRows = resolutionBreachedTickets.map((issue) => [
+        issue.key,
+        issue.fields.summary,
+        issue.fields.status.name,
+        issue.fields.customfield_10778?.value || "-",
+        new Date(issue.fields.created).toLocaleDateString(),
+        issue.fields.resolutiondate
+          ? new Date(issue.fields.resolutiondate).toLocaleDateString()
+          : "-",
+      ]);
+
       //PDF
-      const allTickets = await fetchAllTickets();
-      const tableRows = allTickets.map((issue) => [
+      //const allTickets = await allTicketsDetails();
+      const tableRows = allTicketsDetails.map((issue) => [
         issue.key,
         issue.fields.summary,
         issue.fields.status.name,
@@ -347,6 +427,70 @@ const App = () => {
       addHeader(doc);
       addPageBorder(doc);
       let tableStartY = 34;
+
+      if (responseBreachedRows.length > 0) {
+        doc.setTextColor(25, 55, 109);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("Priority Response SLA Breached Tickets", LEFT_MARGIN, tableStartY);
+
+        autoTable(doc, {
+          startY: tableStartY + 6,
+          head: [
+            ["Key", "Summary", "Status", "Issue Type", "Created", "Resolved"],
+          ],
+          body: responseBreachedRows,
+          didDrawPage: () => {
+            addHeader(doc);
+            addPageBorder(doc);
+          },
+          styles: {
+            fontSize: 9,
+            cellPadding: 2,
+            valign: "middle",
+            overflow: "linebreak",
+          },
+          headStyles: {
+            fillColor: [41, 128, 185],
+            textColor: 255,
+            fontStyle: "bold",
+          },
+        });
+      tableStartY = doc.lastAutoTable.finalY + 12;
+      }
+
+      if (resolutionBreachedRows.length > 0) {
+        doc.setTextColor(25, 55, 109);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("Severity Resolution SLA Breached Tickets", LEFT_MARGIN, tableStartY);
+
+        autoTable(doc, {
+          startY: tableStartY + 6,
+          head: [
+            ["Key", "Summary", "Status", "Issue Type", "Created", "Resolved"],
+          ],
+          body: resolutionBreachedRows,
+          didDrawPage: () => {
+            addHeader(doc);
+            addPageBorder(doc);
+          },
+          styles: {
+            fontSize: 9,
+            cellPadding: 2,
+            valign: "middle",
+            overflow: "linebreak",
+          },
+          headStyles: {
+            fillColor: [41, 128, 185],
+            textColor: 255,
+            fontStyle: "bold",
+          },
+        });
+      tableStartY = doc.lastAutoTable.finalY + 12;
+      }
+
+
       doc.setTextColor(25, 55, 109);
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
@@ -385,46 +529,6 @@ const App = () => {
     } finally {
       setExportingPdf(false);
     }
-  };
-
-  // Fetch all tickets for pdf table export
-  const fetchAllTickets = async () => {
-    let jql = "";
-    if (selectedProject) {
-      jql += `project = "${selectedProject}"`;
-    }
-    let allTickets = [];
-    let nextPageToken = null;
-    do {
-      const body = {
-        jql,
-        maxResults: 100,
-        fields: [
-          "summary",
-          "assignee",
-          "status",
-          "created",
-          "resolutiondate",
-          "customfield_10778",
-        ],
-      };
-      if (nextPageToken) {
-        body.nextPageToken = nextPageToken;
-      }
-      const response = await requestJira("/rest/api/3/search/jql", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-      const data = await response.json();
-      if (!data.issues) break;
-      allTickets.push(...data.issues);
-      nextPageToken = data.nextPageToken;
-    } while (nextPageToken);
-    return allTickets;
   };
 
   // Function to handle status filter click for open issues
@@ -595,9 +699,9 @@ const App = () => {
       projectStatusFilter.length === 0
         ? allProjects
         : allProjects.filter((project) => {
-            const category = project.projectCategory?.name;
-            return category && projectStatusFilter.includes(category);
-          });
+          const category = project.projectCategory?.name;
+          return category && projectStatusFilter.includes(category);
+        });
 
     console.log(filtered);
 
@@ -773,6 +877,9 @@ const App = () => {
           "created",
           "resolutiondate",
           "customfield_10778",
+          "customfield_10884",
+          "customfield_10885"
+
         ],
         //fields: ["*all"]
       };

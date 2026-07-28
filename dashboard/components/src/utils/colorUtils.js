@@ -1,6 +1,5 @@
 export const getStatusColor = (status, category) => {
 
-  console.log("Status:", status, "Category:", category);
   const name = status.toLowerCase();
 
   if (name.includes("cancel")) {

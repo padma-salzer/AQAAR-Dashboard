@@ -59,7 +59,9 @@ const TicketTable = ({ issues, nextPageToken, fetchOpenTickets }) => {
                 <th style={thStyle}>Status</th>
                 <th style={thStyle}>Issue Category</th>
                 <th style={{ ...thStyle }}>Created</th>
-                <th style={{ ...thStyle, borderRight: "none" }}>Resolved</th>
+                <th style={{ ...thStyle,borderRight: "none"  }}>Resolved</th>
+                {/* <th style={{ ...thStyle }}>Reponse SLA</th>
+                <th style={{ ...thStyle, borderRight: "none" }}>Resolution SLA</th> */}
               </tr>
             </thead>
 
@@ -102,6 +104,12 @@ const TicketTable = ({ issues, nextPageToken, fetchOpenTickets }) => {
                         ).toLocaleDateString("en-GB")
                       : "-"}
                   </td>
+                  {/* <td style={tdStyle}>
+                    {issue.fields.customfield_10882?.value || "-"}
+                  </td>
+                  <td style={tdStyle}>
+                    {issue.fields.customfield_10883?.value || "-"}
+                  </td> */}
                 </tr>
               ))}
             </tbody>
