@@ -501,9 +501,10 @@ const App = () => {
           ["Key", "Summary", "Status", "Issue Type", "Created", "Resolved"],
         ],
         body: tableRows,
-        didDrawPage: () => {
+        willDrawPage: (data) => {
           addHeader(doc);
           addPageBorder(doc);
+          data.settings.margin.top = 30;
         },
         styles: {
           fontSize: 9,
