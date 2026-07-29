@@ -238,11 +238,11 @@ const App = () => {
       // const slaImage = slaCanvas.toDataURL("image/png");
 
       const responseBreachedTickets = await fetchAllTickets(
-        `project = "${selectedProject}" AND cf[10882] = "Breached"`
+        `project = "${selectedProject}" AND cf[10884] = "Breached"`
       );
 
       const resolutionBreachedTickets = await fetchAllTickets(
-        `project = "${selectedProject}" AND cf[10883] = "Breached"`
+        `project = "${selectedProject}" AND cf[10885] = "Breached"`
       );
 
       const allTicketsDetails = await fetchAllTickets(
@@ -390,17 +390,17 @@ const App = () => {
       doc.setFontSize(10);
       doc.setTextColor(0);
 
-      doc.text("Severity - Time to First Response", LEFT_MARGIN + 4, y);
+      doc.text("Priority - Time to First Response", LEFT_MARGIN + 4, y);
 
       doc.text("Met", 115, y);
       doc.setTextColor(54, 179, 126);
-      doc.text(String(slaData[6]?.count || 0), 130, y);
+      doc.text(String(slaData[2]?.count || 0), 130, y);
 
       doc.setTextColor(0);
       doc.text("Breached", 145, y);
 
       doc.setTextColor(255, 86, 48);
-      doc.text(String(slaData[7]?.count || 0), 170, y);
+      doc.text(String(slaData[3]?.count || 0), 170, y);
 
       y += 8;
 
@@ -409,7 +409,7 @@ const App = () => {
       doc.setFontSize(10);
       doc.setTextColor(0);
 
-      doc.text("Severity - Time to Resolution", LEFT_MARGIN + 4, y);
+      doc.text("Priority - Time to Resolution", LEFT_MARGIN + 4, y);
 
       doc.text("Met", 115, y);
       doc.setTextColor(54, 179, 126);
@@ -463,7 +463,7 @@ const App = () => {
         doc.setTextColor(25, 55, 109);
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
-        doc.text("Severity Resolution SLA Breached Tickets", LEFT_MARGIN, tableStartY);
+        doc.text("Priority Resolution SLA Breached Tickets", LEFT_MARGIN, tableStartY);
 
         autoTable(doc, {
           startY: tableStartY + 6,
