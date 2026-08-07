@@ -59,6 +59,7 @@ const App = () => {
   //   (slaData[2]?.count || 0) + (slaData[3]?.count || 0) > 0;
 
   const hasPriorityResolutionData =
+    //console.log("SLA Data:", slaData)
     (slaData[0]?.count || 0) + (slaData[1]?.count || 0) > 0;
 
   const hasPriorityResponseData =
@@ -100,7 +101,8 @@ const App = () => {
           "resolutiondate",
           "customfield_10778",
           "customfield_10884",
-          "customfield_10885"
+          "customfield_10885",
+          "priority",
 
         ],
       };
@@ -108,7 +110,7 @@ const App = () => {
         body.nextPageToken = nextPageToken;
       }
 
-      console.log("JQL:", jql);
+      //console.log("JQL:", jql);
       const response = await requestJira("/rest/api/3/search/jql", {
         method: "POST",
         headers: {
@@ -118,7 +120,6 @@ const App = () => {
         body: JSON.stringify(body),
       });
       const data = await response.json();
-      console.log("data", data)
       if (!data.issues) break;
       allTickets.push(...data.issues);
       nextPageToken = data.nextPageToken;
@@ -238,11 +239,11 @@ const App = () => {
       // const slaImage = slaCanvas.toDataURL("image/png");
 
       const responseBreachedTickets = await fetchAllTickets(
-        `project = "${selectedProject}" AND cf[10884] = "Breached"`
+        `project = "${selectedProject}" AND cf[10884] = "Breached" AND created >= "${fromDate}" AND created <= "${toDate} 23:59"`
       );
 
       const resolutionBreachedTickets = await fetchAllTickets(
-        `project = "${selectedProject}" AND cf[10885] = "Breached"`
+        `project = "${selectedProject}" AND cf[10885] = "Breached" AND created >= "${fromDate}" AND created <= "${toDate} 23:59"`
       );
 
       const allTicketsDetails = await fetchAllTickets(
@@ -257,6 +258,7 @@ const App = () => {
         issue.fields.summary,
         issue.fields.status.name,
         issue.fields.customfield_10778?.value || "-",
+        issue.fields.priority?.name || "-",
         new Date(issue.fields.created).toLocaleDateString(),
         issue.fields.resolutiondate
           ? new Date(issue.fields.resolutiondate).toLocaleDateString()
@@ -268,6 +270,7 @@ const App = () => {
         issue.fields.summary,
         issue.fields.status.name,
         issue.fields.customfield_10778?.value || "-",
+        issue.fields.priority?.name || "-",
         new Date(issue.fields.created).toLocaleDateString(),
         issue.fields.resolutiondate
           ? new Date(issue.fields.resolutiondate).toLocaleDateString()
@@ -281,6 +284,7 @@ const App = () => {
         issue.fields.summary,
         issue.fields.status.name,
         issue.fields.customfield_10778?.value || "-",
+        issue.fields.priority?.name || "-",
         new Date(issue.fields.created).toLocaleDateString(),
         issue.fields.resolutiondate
           ? new Date(issue.fields.resolutiondate).toLocaleDateString()
@@ -428,6 +432,29 @@ const App = () => {
       addPageBorder(doc);
       let tableStartY = 34;
 
+      const commonTableOptions = {
+        styles: {
+          fontSize: 9,
+          cellPadding: 2,
+          valign: "middle",
+          overflow: "linebreak",
+        },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        columnStyles: {
+          0: { cellWidth: 17 }, // Key
+          1: { cellWidth: 58 }, // Summary
+          2: { cellWidth: 22 }, // Status
+          3: { cellWidth: 32 }, // Issue Type
+          4: { cellWidth: 16 }, // Priority
+          5: { cellWidth: 20 }, // Created
+          6: { cellWidth: 20 }, // Resolved
+        },
+      };
+
       if (responseBreachedRows.length > 0) {
         doc.setTextColor(25, 55, 109);
         doc.setFontSize(12);
@@ -435,25 +462,15 @@ const App = () => {
         doc.text("Priority Response SLA Breached Tickets", LEFT_MARGIN, tableStartY);
 
         autoTable(doc, {
+           ...commonTableOptions,
           startY: tableStartY + 6,
           head: [
-            ["Key", "Summary", "Status", "Issue Type", "Created", "Resolved"],
+            ["Key", "Summary", "Status", "Issue Type", "Priority", "Created", "Resolved"],
           ],
           body: responseBreachedRows,
           didDrawPage: () => {
             addHeader(doc);
             addPageBorder(doc);
-          },
-          styles: {
-            fontSize: 9,
-            cellPadding: 2,
-            valign: "middle",
-            overflow: "linebreak",
-          },
-          headStyles: {
-            fillColor: [41, 128, 185],
-            textColor: 255,
-            fontStyle: "bold",
           },
         });
       tableStartY = doc.lastAutoTable.finalY + 12;
@@ -466,25 +483,15 @@ const App = () => {
         doc.text("Priority Resolution SLA Breached Tickets", LEFT_MARGIN, tableStartY);
 
         autoTable(doc, {
+           ...commonTableOptions,
           startY: tableStartY + 6,
           head: [
-            ["Key", "Summary", "Status", "Issue Type", "Created", "Resolved"],
+            ["Key", "Summary", "Status", "Issue Type", "Priority", "Created", "Resolved"],
           ],
           body: resolutionBreachedRows,
           didDrawPage: () => {
             addHeader(doc);
             addPageBorder(doc);
-          },
-          styles: {
-            fontSize: 9,
-            cellPadding: 2,
-            valign: "middle",
-            overflow: "linebreak",
-          },
-          headStyles: {
-            fillColor: [41, 128, 185],
-            textColor: 255,
-            fontStyle: "bold",
           },
         });
       tableStartY = doc.lastAutoTable.finalY + 12;
@@ -495,29 +502,27 @@ const App = () => {
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.text("All Ticket Details", LEFT_MARGIN, tableStartY);
+      if (tableRows.length === 0) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text("No tickets available", LEFT_MARGIN, tableStartY + 10);
+      } else {
       autoTable(doc, {
+        ...commonTableOptions,
         startY: tableStartY + 6,
         head: [
-          ["Key", "Summary", "Status", "Issue Type", "Created", "Resolved"],
+          ["Key", "Summary", "Status", "Issue Type", "Priority", "Created", "Resolved"],
         ],
         body: tableRows,
+        rowPageBreak: "avoid",
         willDrawPage: (data) => {
           addHeader(doc);
           addPageBorder(doc);
           data.settings.margin.top = 30;
         },
-        styles: {
-          fontSize: 9,
-          cellPadding: 2,
-          valign: "middle",
-          overflow: "linebreak",
-        },
-        headStyles: {
-          fillColor: [41, 128, 185],
-          textColor: 255,
-          fontStyle: "bold",
-        },
       });
+      }
       const totalPages = doc.getNumberOfPages();
 
       for (let i = 1; i <= totalPages; i++) {
@@ -879,8 +884,8 @@ const App = () => {
           "resolutiondate",
           "customfield_10778",
           "customfield_10884",
-          "customfield_10885"
-
+          "customfield_10885",
+          "priority",
         ],
         //fields: ["*all"]
       };
@@ -1003,7 +1008,7 @@ const App = () => {
         const statusCategory = issue.fields.status?.statusCategory?.name;
 
         // 🔹 Resolution SLA (Done only)
-        if (statusCategory === "Done" && priorityResolutionField?.value) {
+        if ( priorityResolutionField?.value) {
           const sla = priorityResolutionField.value;
 
           if (sla === "Breached") priorityResolutionGrouped.Breached += 1;
@@ -1038,6 +1043,7 @@ const App = () => {
       });
 
       setHasSLAConfigured(slaFieldExists);
+
 
       // ✅ SET STATE HERE (AFTER LOOP)
       setSlaData([

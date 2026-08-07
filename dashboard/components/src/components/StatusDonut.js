@@ -32,7 +32,7 @@ const StatusDonut = ({ statusData, fromDate, toDate, selectedProject }) => {
         Status of Tickets Created
       </h2>
 
-      {statusData.length === 0 && <p>No data available</p>}
+      {statusData.length === 0 && <p>No tickets available</p>}
 
       {statusData.length > 0 && (
         <div

@@ -12,7 +12,7 @@ const TicketBarChart = ({
     <div style={{ ...card, marginBottom: "24px" }}>
       <h2 style={sectionTitle}>Tickets by Created Date</h2>
 
-      {chartData.length === 0 && <p>No data available</p>}
+      {chartData.length === 0 && <p>No tickets available</p>}
 
       {chartData.length > 0 && (
         <div

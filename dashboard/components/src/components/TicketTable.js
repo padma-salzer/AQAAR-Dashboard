@@ -57,7 +57,8 @@ const TicketTable = ({ issues, nextPageToken, fetchOpenTickets }) => {
                 <th style={thStyle}>Key</th>
                 <th style={thStyle}>Summary</th>
                 <th style={thStyle}>Status</th>
-                <th style={thStyle}>Issue Category</th>
+                <th style={thStyle}>Issue Type</th>
+                <th style={thStyle}>Priority</th>
                 <th style={{ ...thStyle }}>Created</th>
                 <th style={{ ...thStyle,borderRight: "none"  }}>Resolved</th>
                 {/* <th style={{ ...thStyle }}>Reponse SLA</th>
@@ -93,6 +94,8 @@ const TicketTable = ({ issues, nextPageToken, fetchOpenTickets }) => {
                   <td style={tdStyle}>
                     {issue.fields.customfield_10778?.value || "-"}
                   </td>
+
+                  <td style={tdStyle}>{issue.fields.priority?.name || "-"}</td>
 
                   <td style={tdStyle}>
                     {new Date(issue.fields.created).toLocaleDateString("en-GB")}
