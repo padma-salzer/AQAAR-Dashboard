@@ -5,6 +5,7 @@ import { getStatusColor } from "./utils/colorUtils";
 import FilterSection from "./components/FilterSection";
 import StatusDonut from "./components/StatusDonut";
 import ActiveStatusDonut from "./components/ActiveStatusDonut";
+import IssueCategoryBar from "./components/IssueCategoryBar";
 import SlaSection from "./components/SlaSection";
 import TicketBarChart from "./components/TicketBarChart";
 import TicketTable from "./components/TicketTable";
@@ -36,6 +37,7 @@ const App = () => {
   const [selectedProject, setSelectedProject] = useState("");
   const [statusData, setStatusData] = useState([]);
   const [issues, setTickets] = useState([]);
+  const [issueCategoryData, setIssueCategoryData] = useState([]);
   const [nextPageToken, setNextPageToken] = useState(null);
   const [totalTickets, setTotalTickets] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
@@ -237,6 +239,20 @@ const App = () => {
       //   backgroundColor: "#ffffff",
       // });
       // const slaImage = slaCanvas.toDataURL("image/png");
+      // Issue Category Donut
+      const issueCategoryElement = document.getElementById(
+        "issue-category-donut"
+      );
+      const issueCategoryCanvas = await html2canvas(
+        issueCategoryElement,
+        {
+          scale: 3,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+        }
+      );
+      const issueCategoryImage =
+        issueCategoryCanvas.toDataURL("image/png");
 
       const responseBreachedTickets = await fetchAllTickets(
         `project = "${selectedProject}" AND cf[10884] = "Breached" AND created >= "${fromDate}" AND created <= "${toDate} 23:59"`
@@ -334,16 +350,17 @@ const App = () => {
       // y += 10;
 
       //Donut Charts
-      const statusWidth = canvas.width * scale;
-      const statusHeight = canvas.height * scale;
+      const pdfDonutScale = 0.65;
+      const statusWidth = canvas.width * scale * pdfDonutScale;
+      const statusHeight = canvas.height * scale * pdfDonutScale;
 
       doc.addImage(image, "PNG", LEFT_MARGIN, y, statusWidth, statusHeight);
 
       y += statusHeight + 4;
 
       // Active Status Donut
-      const activeWidth = activeCanvas.width * scale;
-      const activeHeight = activeCanvas.height * scale;
+      const activeWidth = activeCanvas.width * scale * pdfDonutScale;
+      const activeHeight = activeCanvas.height * scale * pdfDonutScale;
 
       doc.addImage(
         activeImage,
@@ -355,6 +372,19 @@ const App = () => {
       );
 
       y += activeHeight + 10;
+
+      // Issue Category Donut
+      const issueCategoryWidth = issueCategoryCanvas.width * scale * pdfDonutScale;
+      const issueCategoryHeight = issueCategoryCanvas.height * scale * pdfDonutScale;
+      doc.addImage(
+        issueCategoryImage,
+        "PNG",
+        LEFT_MARGIN,
+        y,
+        issueCategoryWidth,
+        issueCategoryHeight
+      );
+      y += issueCategoryHeight + 10;
 
       // const slaWidth = statusWidth;
 
@@ -501,7 +531,7 @@ const App = () => {
       doc.setTextColor(25, 55, 109);
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
-      doc.text("All Ticket Details", LEFT_MARGIN, tableStartY);
+      doc.text("All Ticket Details (Tickets irrespective of date range)", LEFT_MARGIN, tableStartY);
       if (tableRows.length === 0) {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(11);
@@ -742,6 +772,7 @@ const App = () => {
       fetchTotalTickets();
       fetchIssueData();
       fetchStatusData();
+      fetchIssueCategoryData();
       fetchOpenTickets();
       fetchSLAData();
       fetchOpenStatusSummary();
@@ -871,7 +902,7 @@ const App = () => {
         jql += `project = "${selectedProject}"`;
       }
 
-      jql += ` ORDER BY created ASC`;
+      jql += ` ORDER BY created DESC`;
 
       const body = {
         jql,
@@ -1087,22 +1118,67 @@ const App = () => {
     }
   };
 
-  // need to delete this function
-  // const total = statusData.reduce((sum, item) => sum + item.count, 0);
-  // //const total = totalStatusTickets;
+  // Fetch ticket counts by issue category for the selected date range and project
+  const fetchIssueCategoryData = async () => {
+    if (!fromDate || !toDate) {
+      alert("Please select both dates");
+      return;
+    }
+    try {
+      let jql = `created >= "${fromDate}" AND created <= "${toDate} 23:59"`;
+      if (selectedProject) {
+        jql += ` AND project = "${selectedProject}"`;
+      }
+      let allTickets = [];
+      let nextPageToken = null;
+      do {
+        const body = {
+          jql,
+          maxResults: 100,
+          fields: ["customfield_10778"], // Replace with the actual field ID for issue category
+        };
+        if (nextPageToken) {
+          body.nextPageToken = nextPageToken;
+        }
+        const response = await requestJira("/rest/api/3/search/jql", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!data.issues) {
+          console.error("No issues returned:", data);
+          return;
+        }
+        allTickets = [...allTickets, ...data.issues];
+        nextPageToken = data.nextPageToken;
+      } while (nextPageToken);
+      // Group tickets by issue category
+      const grouped = {};
+      allTickets.forEach((issue) => {
+        const category =
+          issue.fields?.customfield_10778?.value ||
+          issue.fields?.customfield_10778?.name ||
+          "Uncategorized";
+        grouped[category] = (grouped[category] || 0) + 1;
+      });
+      const formatted = Object.keys(grouped).map((category) => ({
+        category,
+        count: grouped[category],
+      }));
+      formatted.sort((a, b) => b.count - a.count);
+      console.log("Issue Category Data:", formatted);
+      setIssueCategoryData(formatted);
+    } catch (error) {
+      console.error("Error fetching issue category data:", error);
+    }
+  };
+
   const radius = 80;
   const circumference = 2 * Math.PI * radius;
-
-  // // JQL for total donut click
-  // let totalJql = `created >= "${fromDate}" AND created <= "${toDate} 23:59"`;
-
-  // if (selectedProject) {
-  //   totalJql += ` AND project = "${selectedProject}"`;
-  // }
-
-  // const encodedTotalJql = encodeURIComponent(totalJql);
-  // const totalJiraUrl = `/issues/?jql=${encodedTotalJql}`;
-
   const chartStyle = {
     maxWidth: "600px",
     marginTop: "24px",
@@ -1228,10 +1304,10 @@ const App = () => {
           setTickets([]);
           setNextPageToken(null);
           setTotalTickets(0);
-
           fetchTotalTickets();
           fetchIssueData();
           fetchStatusData();
+          fetchIssueCategoryData();
           fetchOpenTickets();
           fetchSLAData();
           fetchOpenStatusSummary();
@@ -1278,6 +1354,20 @@ const App = () => {
             selectedProject={selectedProject}
           />
         </div>
+      </div>
+
+      {/* ISSUE CATEGORY */}
+      
+      <div id="issue-category"
+        style={{
+          width: "calc(50% - 10px)",
+        }}>
+        <IssueCategoryBar
+          issueCategoryData={issueCategoryData}
+          fromDate={fromDate}
+          toDate={toDate}
+          selectedProject={selectedProject}
+        />
       </div>
 
       {/* SLA */}
