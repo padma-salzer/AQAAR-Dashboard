@@ -86,11 +86,9 @@ const App = () => {
   // Exclude specific test tickets from the dashboard and reports
   const excludedTestTickets =
   `AND key NOT IN ("AAS-1", "AAS-2")`;
-  const removeTestTickets =
-  `key NOT IN ("AAS-1", "AAS-2")`;
-
+  
  // Fetch all tickets for pdf table export
-  const fetchAllTickets = async (jql = removeTestTickets) => {
+  const fetchAllTickets = async (jql = "") => {
     // if (selectedProject) {
     //   jql += `project = "${selectedProject}"`;
     // }
@@ -260,15 +258,15 @@ const App = () => {
         issueCategoryCanvas.toDataURL("image/png");
 
       const responseBreachedTickets = await fetchAllTickets(
-        `project = "${selectedProject}" AND cf[10884] = "Breached" AND created >= "${fromDate}" AND created <= "${toDate} 23:59"`
+        `project = "${selectedProject}" AND cf[10884] = "Breached" AND created >= "${fromDate}" AND created <= "${toDate} 23:59" ${excludedTestTickets}`
       );
 
       const resolutionBreachedTickets = await fetchAllTickets(
-        `project = "${selectedProject}" AND cf[10885] = "Breached" AND created >= "${fromDate}" AND created <= "${toDate} 23:59"`
+        `project = "${selectedProject}" AND cf[10885] = "Breached" AND created >= "${fromDate}" AND created <= "${toDate} 23:59" ${excludedTestTickets}`
       );
 
       const allTicketsDetails = await fetchAllTickets(
-        `project = "${selectedProject}"`
+        `project = "${selectedProject}" ${excludedTestTickets}`
       );
       const PDF_CONTENT_WIDTH = 180;
 
