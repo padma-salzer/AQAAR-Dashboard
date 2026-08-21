@@ -86,9 +86,11 @@ const App = () => {
   // Exclude specific test tickets from the dashboard and reports
   const excludedTestTickets =
   `AND key NOT IN ("AAS-1", "AAS-2")`;
+  const removeTestTickets =
+  `key NOT IN ("AAS-1", "AAS-2")`;
 
  // Fetch all tickets for pdf table export
-  const fetchAllTickets = async (jql = "{excludedTestTickets}") => {
+  const fetchAllTickets = async (jql = removeTestTickets) => {
     // if (selectedProject) {
     //   jql += `project = "${selectedProject}"`;
     // }
@@ -901,11 +903,10 @@ const App = () => {
     try {
       //let jql = `statusCategory != Done AND status NOT IN ("Closed","Resolved","Canceled")`;
       let jql = ``;
-      jql += ` ${excludedTestTickets}`;
       if (selectedProject) {
         jql += `project = "${selectedProject}"`;
       }
-
+      jql += ` ${excludedTestTickets}`;
       jql += ` ORDER BY created DESC`;
 
       const body = {
