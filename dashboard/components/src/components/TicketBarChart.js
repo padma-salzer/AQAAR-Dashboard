@@ -2,11 +2,14 @@ import React from "react";
 import { router } from "@forge/bridge";
 import { card, sectionTitle } from "../utils/styles";
 import { formatDate } from "../utils/dateUtils";
-
+// Exclude specific test tickets from the dashboard and reports
+const excludedTestTickets =
+  `AND key NOT IN ("AAS-1", "AAS-2")`;
 const TicketBarChart = ({
   chartData,
   maxCount,
   selectedProject,
+  
 }) => {
   return (
     <div style={{ ...card, marginBottom: "24px" }}>
@@ -31,7 +34,7 @@ const TicketBarChart = ({
             const barHeight =
               (Math.sqrt(item.count) / Math.sqrt(maxCount)) * 160;
 
-            let jql = `created >= "${item.date}" AND created <= "${item.date} 23:59"`;
+            let jql = `created >= "${item.date}" AND created <= "${item.date} 23:59" ${excludedTestTickets}`;
 
             if (selectedProject) {
               jql += ` AND project = "${selectedProject}"`;

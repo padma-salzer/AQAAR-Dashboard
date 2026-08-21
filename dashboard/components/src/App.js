@@ -83,9 +83,12 @@ const App = () => {
         : [...prev, status],
     );
   };
+  // Exclude specific test tickets from the dashboard and reports
+  const excludedTestTickets =
+  `AND key NOT IN ("AAS-1", "AAS-2")`;
 
  // Fetch all tickets for pdf table export
-  const fetchAllTickets = async (jql = "") => {
+  const fetchAllTickets = async (jql = "{excludedTestTickets}") => {
     // if (selectedProject) {
     //   jql += `project = "${selectedProject}"`;
     // }
@@ -371,7 +374,7 @@ const App = () => {
         activeHeight,
       );
 
-      y += activeHeight + 10;
+      y += activeHeight + 4;
 
       // Issue Category Donut
       const issueCategoryWidth = issueCategoryCanvas.width * scale * pdfDonutScale;
@@ -566,11 +569,11 @@ const App = () => {
       setExportingPdf(false);
     }
   };
-
+  
   // Function to handle status filter click for open issues
   const fetchOpenStatusSummary = async () => {
     try {
-      let jql = `statusCategory != Done AND status NOT IN ("Closed","Resolved","Canceled")`;
+      let jql = `statusCategory != Done AND status NOT IN ("Closed","Resolved","Canceled") ${excludedTestTickets}`;
 
       if (selectedProject) {
         jql += ` AND project = "${selectedProject}"`;
@@ -645,7 +648,7 @@ const App = () => {
     }
 
     try {
-      let jql = `created >= "${fromDate}" AND created <= "${toDate} 23:59"`;
+      let jql = `created >= "${fromDate}" AND created <= "${toDate} 23:59" ${excludedTestTickets}`;
 
       if (selectedProject) {
         jql += ` AND project = "${selectedProject}"`;
@@ -788,7 +791,7 @@ const App = () => {
     }
 
     try {
-      let jql = `created >= "${fromDate}" AND created <= "${toDate} 23:59"`;
+      let jql = `created >= "${fromDate}" AND created <= "${toDate} 23:59" ${excludedTestTickets}`;
 
       if (selectedProject) {
         jql += ` AND project = "${selectedProject}"`;
@@ -862,7 +865,7 @@ const App = () => {
   // Total Count
   const fetchTotalTickets = async () => {
     try {
-      let jql = `created >= "${fromDate}" AND created <= "${toDate} 23:59" AND statusCategory IN ("To Do","In Progress")`;
+      let jql = `created >= "${fromDate}" AND created <= "${toDate} 23:59" AND statusCategory IN ("To Do","In Progress") ${excludedTestTickets}`;
 
       if (selectedProject) {
         jql += ` AND project = "${selectedProject}"`;
@@ -897,7 +900,8 @@ const App = () => {
   const fetchOpenTickets = async (token = null) => {
     try {
       //let jql = `statusCategory != Done AND status NOT IN ("Closed","Resolved","Canceled")`;
-      let jql = "";
+      let jql = ``;
+      jql += ` ${excludedTestTickets}`;
       if (selectedProject) {
         jql += `project = "${selectedProject}"`;
       }
@@ -958,7 +962,7 @@ const App = () => {
     setSlaData([]);
 
     try {
-      let jql = `created >= "${fromDate}" AND created <= "${toDate} 23:59" AND status NOT IN ("Canceled")`;
+      let jql = `created >= "${fromDate}" AND created <= "${toDate} 23:59" AND status NOT IN ("Canceled") ${excludedTestTickets}`;
 
       if (selectedProject) {
         jql += ` AND project = "${selectedProject}"`;
@@ -1125,7 +1129,7 @@ const App = () => {
       return;
     }
     try {
-      let jql = `created >= "${fromDate}" AND created <= "${toDate} 23:59"`;
+      let jql = `created >= "${fromDate}" AND created <= "${toDate} 23:59" ${excludedTestTickets}`;
       if (selectedProject) {
         jql += ` AND project = "${selectedProject}"`;
       }
